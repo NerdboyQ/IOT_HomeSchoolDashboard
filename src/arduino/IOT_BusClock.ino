@@ -1,6 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #include "Music_7Octaves.h"
+#include "HomeSecurity.h"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -42,8 +43,8 @@ const byte max_blue = 255;
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 
-const char* ssid = "HouseOfBrennan";
-const char* password = "07042014";
+const char* ssid = _SSID;
+const char* password = _PASSWORD;
 
 ESP8266WebServer server(80);
 
