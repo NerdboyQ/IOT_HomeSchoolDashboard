@@ -1,8 +1,7 @@
-import main_app
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime as dt
 
-
+d = "tester"
 db = SQLAlchemy()
 
 
