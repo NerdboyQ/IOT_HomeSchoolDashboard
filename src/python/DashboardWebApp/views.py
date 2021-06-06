@@ -1,15 +1,10 @@
-from models import *
-from flask import Flask, render_template
+from flask import render_template, jsonify
+from DashboardWebApp import app
+from DashboardWebApp.models import *
 from flask_sqlalchemy import SQLAlchemy
 
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///alarms.sqlite3'
-app.config['SECRET_KEY'] = "random string"
-db = SQLAlchemy(app)
-		
-
+@app.route('/get_alarms', methods=['GET'])
 def get_alarms_from_db():
 	"""
 	Queries the database for all alarms currently in the database
@@ -21,7 +16,7 @@ def get_alarms_from_db():
 		temp_dict.pop(list(temp_dict.keys())[0])
 		records.append(temp_dict)
 	
-	return records
+	return jsonify(records)
 
 
 @app.route("/add_new_alarm")
@@ -59,7 +54,6 @@ def render_homepage():
 	return render_template('homepage.html', alarms=Alarm.query.all())
 	
 
-if __name__ == "__main__":
-	# adding host '0.0.0.0' & a port, this can serve as a local network server when running.
-	db.create_all()
-	app.run(host="0.0.0.0", port=5003, debug=True)
+db.create_all()
+
+

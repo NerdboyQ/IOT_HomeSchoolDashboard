@@ -1,8 +1,5 @@
-from flask_sqlalchemy import SQLAlchemy
+from DashboardWebApp import db
 from datetime import datetime as dt
-
-d = "tester"
-db = SQLAlchemy()
 
 
 def get_date_string():

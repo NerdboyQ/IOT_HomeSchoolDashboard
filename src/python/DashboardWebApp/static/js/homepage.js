@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+
 	var elems = document.querySelectorAll('.dropdown-trigger');
 	var instances = M.Dropdown.init(elems);
 	
@@ -18,11 +19,19 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	
 	//var modal = document.querySelectorAll('modal');
-	
 	var jquerymodal = $('.modal');  //convert to jQuery Element
 	$('.modal').modal();
 	jquerymodal.modal();
+
   });
+
+console.log('grabbing alarms');
+$.getJSON("..//get_alarms",
+    function(data){
+        console.log(data);
+        console.log('duh');
+    }
+);
 
 var ctx_behavior = document.getElementById('BehaviorChart').getContext('2d');
 var myChart_behavior = new Chart(ctx_behavior, {
@@ -68,6 +77,7 @@ var myChart_behavior = new Chart(ctx_behavior, {
 		}
 	 }
 });
+
 
 var ctx_school = document.getElementById('SchoolCoverageChart').getContext('2d');
 var myChart_school = new Chart(ctx_school, {
