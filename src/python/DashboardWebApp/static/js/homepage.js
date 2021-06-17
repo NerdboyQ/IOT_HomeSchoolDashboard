@@ -23,7 +23,36 @@ document.addEventListener('DOMContentLoaded', function() {
 	$('.modal').modal();
 	jquerymodal.modal();
 
+
+
   });
+
+var clock_date_fld = document.getElementById("clock-date");
+var clock_time_fld = document.getElementById("clock-time");
+
+setInterval(function() {
+    update_clock();
+}, 100);
+
+function update_clock(){
+    const formatter = new Intl.DateTimeFormat('us', { month: 'short' });
+    var date = new Date();
+    var hr = date.getHours();
+    var min = date.getMinutes();
+    var ampm = "PM";
+    if (hr < 12){
+        hr = 12 - hr;
+        ampm = "AM";
+    }
+
+    clock_date_fld.innerHTML = formatter.format(date) + " " + date.getDate() + ", " + date.getFullYear();
+    if (min < 10){
+        clock_time_fld.innerHTML = hr + ":0" + date.getMinutes() + ampm;
+    } else {
+        clock_time_fld.innerHTML = hr + ":" + date.getMinutes() + ampm;
+    }
+
+}
 
 console.log('grabbing alarms');
 $.getJSON("..//get_alarms",
