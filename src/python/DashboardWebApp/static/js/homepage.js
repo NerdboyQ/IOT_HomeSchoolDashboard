@@ -35,17 +35,32 @@ setInterval(function() {
 }, 100);
 
 function update_clock(){
-    const formatter = new Intl.DateTimeFormat('us', { month: 'short' });
+    const formatter = new Intl.DateTimeFormat('us', { month: 'long' });
+    const day_formatter = new Intl.DateTimeFormat('en-US', { weekday: 'long'})
     var date = new Date();
+    var day = day_formatter.format(date.getDay());
     var hr = date.getHours();
     var min = date.getMinutes();
     var ampm = "PM";
+    console.log(date);
     if (hr < 12){
-        hr = 12 - hr;
         ampm = "AM";
+        if (hr == 0){
+            hr = 12;
+        }
+
+        if (hr < 10){
+            hr = "0" + hr;
+        }
+    }
+    else if (hr > 12){
+        hr -= 12;
+        if (hr < 0){
+            hr = hr * -1;
+        }
     }
 
-    clock_date_fld.innerHTML = formatter.format(date) + " " + date.getDate() + ", " + date.getFullYear();
+    clock_date_fld.innerHTML = day + " " + formatter.format(date) + " " + date.getDate() + ", " + date.getFullYear();
     if (min < 10){
         clock_time_fld.innerHTML = hr + ":0" + date.getMinutes() + ampm;
     } else {
