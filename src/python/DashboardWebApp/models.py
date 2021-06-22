@@ -9,6 +9,35 @@ def get_date_string():
 	return dt.now().date().strftime("%b %d, %Y")
 
 
+class BehaviorRecord(db.Model):
+	"""
+	BehaviorRecord model for recording happy, sad, or bonus points.
+	"""
+	date = db.Column(db.String(120), default=get_date_string, primary_key=True)
+	happy_point_count = db.Column(db.Integer, nullable=False)
+	sad_point_count = db.Column(db.Integer, nullable=False)
+	bonus_point_count = db.Column(db.Integer, nullable=False)
+
+	def __repr__(self):
+		""""
+		Returns field date of behavior record.
+		"""
+		return f'<BehaviorRecord: {self.date}>'
+
+	@property
+	def payload(self):
+		"""
+		Returns the dictionary representation of the Baavior Record instance.
+		"""
+		_payload = {
+			"date" : self.date,
+			"happy_point_count": self.happy_point_count,
+			"sad_point_count": self.sad_point_count,
+			"bonus_point_count": self.bonus_point_count
+		}
+		return _payload
+
+
 class Alarm(db.Model):
 	"""
 	Alarm model for storing alarm settings int eh webapp database.
@@ -35,4 +64,5 @@ class Alarm(db.Model):
 		@return alarm object
 		@rtype dict
 		"""
+
 		return self.__dict__
