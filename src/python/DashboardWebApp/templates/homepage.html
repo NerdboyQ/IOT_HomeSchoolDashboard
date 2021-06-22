@@ -27,15 +27,37 @@
 		<div class="row">
 			<nav class="col s12 red darken-1">
 			  <div class="nav-wrapper" style="padding-left:1%">
-				<a href="#!" class="brand-logo left">HomeSchool Dashboard</a>
-				  <div class="row">
-					<!--div class="h-100" style="position:relative;margin-left:80%;text-align:left;border-style:solid;border-width:thin;border-radius:5px;"-->
-					<div class="h-100" style="position:relative;margin-left:70%;text-align:left;">
-						<i class="tiny material-icons inline-icon left h-100">date_range</i>
-						<span id="clock-date" class="white-text" style="width:100%;height:100%">November, 17, 1911</span>
-						<span id="clock-time" class="white-text" style="width:100%;">12:02AM</span>
-					</div>
-				   </div>
+				  <div class="row" style="height:50%">
+					  <div class="col s2 left">
+						<a href="#!" class="brand-logo left">HomeSchool Dashboard</a>
+					  </div>
+					  <div class="col m3 hide-on-small-only right">
+						<!--div class="h-100" style="position:relative;margin-left:80%;text-align:left;border-style:solid;border-width:thin;border-radius:5px;"-->
+						<div style="text-align:left;">
+							<table cellspacing="0" white-space="nowrap" style="margin:0;padding:0;">
+								<tr>
+									<td style="margin:0;padding:0;">
+										<i class="tiny material-icons inline-icon" style="margin-top:-20px;margin-bottom:-20px">date_range</i>
+									</td>
+									<td style="margin:0;padding:0;line-height:10px;">
+										<span id="clock-date" class="white-text" style="text-align:center;">November, 17, 1911</span>
+									</td>
+								</tr>
+									<td style="margin:0;padding:0;">
+										<i class="tiny material-icons inline-icon" style="margin-top:-20px;margin-bottom:-20px">access_time</i>
+									</td>
+									<td style="margin:0;padding:0;line-height:10px;text-align:center;">
+										<span id="clock-time" class="white-text">12:02AM</span>
+									</td>
+								</tr>
+							</table>
+						</div>
+					  </div>
+					  <div class="col s1" style="padding:0;margin-left:85%;">
+					   <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons inline-icon center">menu</i></a>
+					  </div>
+				  </div>
+
 			  <ul id="slide-out" class="sidenav blue-grey darken-3">
 				<li>
 					<div class="user-view">
@@ -144,17 +166,15 @@
 					 </div>
 				</li>
 			  </ul>
-			  
-			 <a href="#" data-target="slide-out" class="sidenav-trigger right"><i class="material-icons">menu</i></a>
 			</nav>
 		</div>
 		
 		
-		
+		<br>
 		  <div class="row">
 			<div class="col s12 m12 l6">
 				<div class="row">
-					<div class="col l4">
+					<div class="col s4">
 						<table class="green center" style="width:80%;border-radius:5%;margin:0;">
 							<tr>
 								<td class="center" style="width:100;padding:0;margin:0;" rowspan="2"><h5>Happy Marks</h5></td>
@@ -169,7 +189,7 @@
 							</tr>
 						</table>
 					</div>
-					<div class="col l4">
+					<div class="col s4">
 						<table class="red center" style="width:80%;border-radius:5%;margin:0;padding:0;">
 							<tr>
 								<td class="center" style="width:100;padding:0;margin:0;" rowspan="2"><h5>Sad Marks</h5></td>
@@ -184,7 +204,7 @@
 							</tr>
 						</table>
 					</div>
-					<div class="col l4">
+					<div class="col s4">
 						<table class="yellow center" style="width:80%;border-radius:5%;margin:0;">
 							<tr>
 								<td class="center" style="width:100;padding:0;margin:0;" rowspan="2"><h5>Bonus Marks</h5></td>
