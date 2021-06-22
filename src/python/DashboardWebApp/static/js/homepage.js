@@ -30,9 +30,45 @@ document.addEventListener('DOMContentLoaded', function() {
 var clock_date_fld = document.getElementById("clock-date");
 var clock_time_fld = document.getElementById("clock-time");
 
+
 setInterval(function() {
     update_clock();
+    handle_behavior_points(0);
 }, 100);
+
+
+function handle_behavior_points(btn_id){
+    console.log(btn_id);
+    var arg = -1;
+    switch (btn_id){
+        case "happy-marks-up-btn":
+            arg = 0;
+            break;
+        case "happy-marks-down-btn":
+            arg = 1;
+            break;
+        case "sad-marks-up-btn":
+            arg = 2;
+            break;
+        case "sad-marks-down-btn":
+            arg = 3;
+            break;
+        case "bonus-marks-up-btn":
+            arg = 4;
+            break;
+        case "bonus-marks-down-btn":
+            arg = 5;
+            break;
+    }
+
+    console.log(arg);
+    var path = "..//update_behavior_points/" + arg;
+    $.getJSON(path,
+        function(data) {
+            console.log(data);
+            update_behavior_graph(data["behavior_record"]["happy_point_count"], data["behavior_record"]["sad_point_count"], data["behavior_record"]["bonus_point_count"])
+        });
+}
 
 function update_clock(){
     const formatter = new Intl.DateTimeFormat('us', { month: 'long' });
@@ -41,7 +77,7 @@ function update_clock(){
     var hr = date.getHours();
     var min = date.getMinutes();
     var ampm = "PM";
-    console.log(date);
+    // console.log(date);
 
     switch (day){
         case 0:
@@ -189,5 +225,13 @@ function handle_add_alarm(){
 
 function handle_remove_alarm(){
 	var alarm_name = this.parentElement.parentElement.getElementsByTagName("a")[0].getElementsByTagName("h5")[0].innerHTML;
-	console.log("Remove buttonn clicked for: " +alarm_name);
+	console.log("Remove button clicked for: " +alarm_name);
+}
+
+function update_behavior_graph(happy_pts, sad_pts, bonus_pts){
+    console.log(myChart_behavior.data.datasets[0].data);
+    myChart_behavior.data.datasets[0].data = [happy_pts];
+    myChart_behavior.data.datasets[1].data = [sad_pts];
+    myChart_behavior.data.datasets[2].data = [bonus_pts];
+    myChart_behavior.update();
 }
