@@ -30,7 +30,7 @@
 				<a href="#!" class="brand-logo left">HomeSchool Dashboard</a>
 				  <div class="row">
 					<!--div class="h-100" style="position:relative;margin-left:80%;text-align:left;border-style:solid;border-width:thin;border-radius:5px;"-->
-					<div class="h-100" style="position:relative;margin-left:75%;text-align:left;">
+					<div class="h-100" style="position:relative;margin-left:70%;text-align:left;">
 						<i class="tiny material-icons inline-icon left h-100">date_range</i>
 						<span id="clock-date" class="white-text" style="width:100%;height:100%">November, 17, 1911</span>
 						<span id="clock-time" class="white-text" style="width:100%;">12:02AM</span>
@@ -153,11 +153,58 @@
 		
 		  <div class="row">
 			<div class="col s12 m12 l6">
+				<div class="row">
+					<div class="col l4">
+						<table class="green center" style="width:80%;border-radius:5%;margin:0;">
+							<tr>
+								<td class="center" style="width:100;padding:0;margin:0;" rowspan="2"><h5>Happy Marks</h5></td>
+								<td class="center" style="width:100;padding-bottom:0;padding-top:5%;margin:0;">
+									<button><i class="material-icons">arrow_drop_up</i></button>
+								</td>
+							</tr>
+							<tr>
+								<td class="center" style="width:100;;padding-top:0;padding-bottom:5%;margin:0;">
+									<button><i class="material-icons">arrow_drop_down</i></button>
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="col l4">
+						<table class="red center" style="width:80%;border-radius:5%;margin:0;padding:0;">
+							<tr>
+								<td class="center" style="width:100;padding:0;margin:0;" rowspan="2"><h5>Sad Marks</h5></td>
+								<td class="center" style="width:100;padding-bottom:0;padding-top:5%;margin:0;">
+									<button><i class="material-icons">arrow_drop_up</i></button>
+								</td>
+							</tr>
+							<tr>
+								<td class="center" style="width:100;;padding-top:0;padding-bottom:5%;margin:0;">
+									<button><i class="material-icons">arrow_drop_down</i></button>
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="col l4">
+						<table class="yellow center" style="width:80%;border-radius:5%;margin:0;">
+							<tr>
+								<td class="center" style="width:100;padding:0;margin:0;" rowspan="2"><h5>Bonus Marks</h5></td>
+								<td class="center" style="width:100;padding-bottom:0;padding-top:5%;margin:0;">
+									<button><i class="material-icons">arrow_drop_up</i></button>
+								</td>
+							</tr>
+							<tr>
+								<td class="center" style="width:100;;padding-top:0;padding-bottom:5%;margin:0;">
+									<button><i class="material-icons">arrow_drop_down</i></button>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
 			  <div class="card red darken-1 z-depth-5">
-				  <span class="card-title" style="padding-left:1%">Daily Behavior</span>
+				  <span class="card-title" style="padding-left:1%;">Daily Behavior</span>
 				  <a class="btn-floating halfway-fab waves-effect waves-light teal accent-3"><i class="material-icons">add</i></a>
 				<div class="card-content white">
-				  <canvas id="BehaviorChart" width="300" height="300"></canvas>
+				  <canvas id="BehaviorChart" width="100" height="50"></canvas>
 				</div>
 			  </div>
 			</div>
@@ -166,7 +213,7 @@
 				  <span class="card-title" style="padding-left:1%">Weekly School Coverage</span>
 				  <a class="btn-floating halfway-fab waves-effect waves-light teal accent-3"><i class="material-icons">add</i></a>
 				<div class="card-content white">
-				  <canvas id="SchoolCoverageChart" width="300" height="300"></canvas>
+				  <canvas id="SchoolCoverageChart" width="100" height="25"></canvas>
 				</div>
 			  </div>
 			</div>

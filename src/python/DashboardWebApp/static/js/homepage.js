@@ -36,13 +36,36 @@ setInterval(function() {
 
 function update_clock(){
     const formatter = new Intl.DateTimeFormat('us', { month: 'long' });
-    const day_formatter = new Intl.DateTimeFormat('en-US', { weekday: 'long'})
     var date = new Date();
-    var day = day_formatter.format(date.getDay());
+    var day = date.getDay();
     var hr = date.getHours();
     var min = date.getMinutes();
     var ampm = "PM";
     console.log(date);
+
+    switch (day){
+        case 0:
+            day = "Sunday";
+            break;
+        case 1:
+            day = "Monday";
+            break;
+        case 2:
+            day = "Tuesday";
+            break;
+        case 3:
+            day = "Wednesday";
+            break;
+        case 4:
+            day = "Thursday";
+            break;
+        case 5:
+            day = "Friday";
+            break;
+        case 6:
+            day = "Saturday";
+            break;
+    }
     if (hr < 12){
         ampm = "AM";
         if (hr == 0){
