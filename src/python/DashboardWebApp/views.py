@@ -2,6 +2,7 @@ from flask import render_template, jsonify
 from DashboardWebApp import app
 from DashboardWebApp.models import *
 from flask_sqlalchemy import SQLAlchemy
+import requests
 
 
 def get_behavior_records():
@@ -32,6 +33,14 @@ def get_behavior_record_values(date: str):
 		print(f'Error finding behavior records: {e}')
 
 		return None
+
+
+@app.route('/trigger_alarm', methods=['GET', 'POST'])
+def trigger_school_alarm():
+	"""
+	Sends a get request to the arduino to trigger the appropriate alarm.
+	"""
+	return jsonify(requests.get("http://192.168.1.188/alarm").text)
 
 
 @app.route('/get_alarms', methods=['GET'])
