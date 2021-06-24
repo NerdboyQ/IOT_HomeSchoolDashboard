@@ -36,9 +36,18 @@ setInterval(function() {
     handle_behavior_points(0);
 }, 100);
 
+function test_alarm(){
+    console.log("testing arduino alarm...");
+    var path = "../trigger_alarm";
+    $.getJSON(path,
+        function(data) {
+            console.log(data);
+
+        });
+}
 
 function handle_behavior_points(btn_id){
-    console.log(btn_id);
+    //console.log(btn_id);
     var arg = -1;
     switch (btn_id){
         case "happy-marks-up-btn":
@@ -61,11 +70,11 @@ function handle_behavior_points(btn_id){
             break;
     }
 
-    console.log(arg);
+    //console.log(arg);
     var path = "..//update_behavior_points/" + arg;
     $.getJSON(path,
         function(data) {
-            console.log(data);
+            //console.log(data);
             update_behavior_graph(data["behavior_record"]["happy_point_count"], data["behavior_record"]["sad_point_count"], data["behavior_record"]["bonus_point_count"])
         });
 }
@@ -128,11 +137,10 @@ function update_clock(){
 
 }
 
-console.log('grabbing alarms');
+//console.log('grabbing alarms');
 $.getJSON("..//get_alarms",
     function(data){
-        console.log(data);
-        console.log('duh');
+        //console.log(data);
     }
 );
 
@@ -229,7 +237,7 @@ function handle_remove_alarm(){
 }
 
 function update_behavior_graph(happy_pts, sad_pts, bonus_pts){
-    console.log(myChart_behavior.data.datasets[0].data);
+    //console.log(myChart_behavior.data.datasets[0].data);
     myChart_behavior.data.datasets[0].data = [happy_pts];
     myChart_behavior.data.datasets[1].data = [sad_pts];
     myChart_behavior.data.datasets[2].data = [bonus_pts];
