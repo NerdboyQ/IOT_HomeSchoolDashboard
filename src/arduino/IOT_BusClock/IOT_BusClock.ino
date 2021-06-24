@@ -79,6 +79,9 @@ void setup() {
   Serial.print(WiFi.localIP());
   Serial.println("/");
 
+  // server address functions
+  server.on("/alarm", play_alarm);
+
   pinMode(BUTTON_PIN,INPUT_PULLUP);
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
@@ -416,4 +419,10 @@ void pixelDemo_Sequence(int val){
     //Serial.print("Pixel number: ");
     //Serial.println(i);
   }
+}
+
+void play_alarm(){
+  // placeholder
+  server.send(200, "text/plain", "{\"status\": \"playing alarm\"}");
+  music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
 }
