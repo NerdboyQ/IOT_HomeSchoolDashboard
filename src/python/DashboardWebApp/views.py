@@ -3,6 +3,7 @@ from DashboardWebApp import app
 from DashboardWebApp.models import *
 from flask_sqlalchemy import SQLAlchemy
 import requests
+import json
 
 
 def get_behavior_records():
@@ -21,7 +22,7 @@ def get_behavior_record_values(date: str):
 
 		# Catch nonexistent record for specified date and create one.
 		if rec is None:
-			print(f"-i- Adding nnew record for {date}")
+			print(f"-i- Adding new record for {date}")
 			rec = BehaviorRecord(happy_point_count=0, sad_point_count=0, bonus_point_count=0)
 			db.session.add(rec)
 			db.session.commit()
@@ -33,6 +34,27 @@ def get_behavior_record_values(date: str):
 		print(f'Error finding behavior records: {e}')
 
 		return None
+
+
+@app.route('/led_status', methods=['GET', 'POST'])
+def get_led_status():
+	"""
+	Sends a request to the arduino to get the current state of the LED's.
+	"""
+
+	url = f"http://192.168.1.188/current_led_state"
+	return json.loads(requests.get(url).text)
+
+
+@app.route('/led_adjust/<state_irgb>', methods=['GET', 'POST'])
+def adjust_led(state_irgb):
+	"""
+	Sends a request to the arduino to adjust the leds.
+	"""
+	state = state_irgb.split()[0]
+	irgb = state_irgb.split()[1].upper()
+	url = f"http://192.168.1.188/led?state={state};irgb={irgb};"
+	return json.loads(requests.get(url).text)
 
 
 @app.route('/trigger_alarm', methods=['GET', 'POST'])
