@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', function() {
 var clock_date_fld = document.getElementById("clock-date");
 var clock_time_fld = document.getElementById("clock-time");
 
+var light_state_ctrl = document.getElementById("");
+var light_intensity_ctrl = document.getElementById("light-intensity-ctrl");
+var light_color_ctrl = document.getElementById("light-color-ctrl");
+var light_state_ctrl = document.getElementById("light-state-ctrl");
+var lighting_options_tbl = document.getElementById("lighting-options-tbl");
+var light_intensity_lbl = document.getElementById("light-intensity-lbl");
+var led_state = 0;
+var irgb = "c8ffffff";
+get_led_status();
 
 setInterval(function() {
     update_clock();
@@ -44,6 +53,89 @@ function test_alarm(){
             console.log(data);
 
         });
+}
+
+function get_led_status(){
+    var path = "../led_status";
+    $.getJSON(path,
+        function(data) {
+            console.log(data);
+            console.log(typeof data);
+            console.log("returned led state:" + data['state']);
+            console.log("returned led irgb:" + data['irgb'].substr(2));
+            console.log("returned led i:" + data["irgb"].substr(0,2));
+            console.log("returned led r:" + data["irgb"].substr(2,2));
+            console.log("returned led g:" + data["irgb"].substr(4,2));
+            console.log("returned led b:" + data["irgb"].substr(-2));
+            if (data["state"] == "0"){
+                led_state = 0;
+                lighting_options_tbl.style.display = "none";
+                light_state_ctrl.checked = false;
+            } else {
+                led_state = 1;
+                lighting_options_tbl.style.display = "block";
+                light_state_ctrl.checked = true;
+            }
+            irgb =  data['irgb'].substr(2);
+            light_intensity_ctrl.value = parse_string_to_byte(data["irgb"].substr(0,2));
+            light_intensity_lbl.innerHTML = light_intensity_ctrl.value + "%";
+            light_color_ctrl.value = "#" + data["irgb"].substr(2,2) + data["irgb"].substr(4,2) + data["irgb"].substr(-2);
+        });
+}
+
+function parse_string_to_byte(byte_string){
+    var final_val = 0;
+    if (byte_string.charCodeAt(0) > 60 && byte_string.charCodeAt(1) > 60){
+        final_val = (byte_string.charCodeAt(0) - 55) + ((byte_string.charCodeAt(1) - 55) * 16);
+    } else if (byte_string.charCodeAt(0) > 60 && byte_string.charCodeAt(1) < 60){
+        final_val = (byte_string.charCodeAt(0) - 48) + ((byte_string.charCodeAt(1) - 55) * 16);
+    } else if (byte_string.charCodeAt(0) < 60 && byte_string.charCodeAt(1) > 60){
+        final_val = (byte_string.charCodeAt(0) - 55) + ((byte_string.charCodeAt(1) - 48) * 16);
+    } else if (byte_string.charCodeAt(0) < 60 && byte_string.charCodeAt(1) < 60){
+        final_val = (byte_string.charCodeAt(0) - 48) + ((byte_string.charCodeAt(1) - 48) * 16);
+    }
+    return final_val;
+}
+
+function handle_light_state(state){
+    console.log("testing light state, value: " + state);
+
+    if (state) {
+        lighting_options_tbl.style.display = "block";
+        led_state = 1;
+    } else {
+        lighting_options_tbl.style.display = "none";
+        led_state = 0;
+    }
+    set_led_status();
+}
+
+function set_led_status(){
+
+    var path = "../led_adjust/" +led_state +" "+ irgb;
+    console.log("full path: " + path);
+    $.getJSON(path,
+        function(data) {
+            console.log(data);
+
+        });
+}
+
+function handle_light_intensity(intensity){
+    console.log("testing light intensity, value: " + intensity);
+    console.log("intensity conversion " + light_intensity_ctrl.value + "=>" + parseInt(light_intensity_ctrl.value).toString(16));
+    light_intensity_lbl.innerHTML = intensity + "%";
+    irgb = parseInt(light_intensity_ctrl.value).toString(16) + light_color_ctrl.value.substr(1).toString(16);
+
+    set_led_status();
+}
+
+function handle_light_color(color){
+    console.log("testing light color, value: " + color);
+    console.log("intensity conversion " + light_intensity_ctrl.value + "=>" + parseInt(light_intensity_ctrl.value).toString(16));
+    irgb = parseInt(light_intensity_ctrl.value).toString(16) + light_color_ctrl.value.substr(1).toString(16);
+
+    set_led_status();
 }
 
 function handle_behavior_points(btn_id){

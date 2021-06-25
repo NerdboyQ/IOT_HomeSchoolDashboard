@@ -15,8 +15,15 @@
 		<!-- javascript had to be placed above the css load for materialize related javascript objects to be used. -->
 		<!-- for the correct modal jquery, import in the followinng order: (1) css, (2) jquery, (3) js -->
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/materialize.min.css') }}"/>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/custom_styling.css') }}"/>
 
+		<!-- Icon resources-->
+		<!-- Google Material Icons -->
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+		<!-- Ion Icons -->
+		<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+		<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 		
 		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
 		<script type="text/javascript" src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
@@ -31,11 +38,11 @@
 					  <div class="col s2 left">
 						<a href="#!" class="brand-logo left">HomeSchool Dashboard</a>
 					  </div>
-					  <div class="col m3 hide-on-small-only right">
+					  <div class="col m3 hide-on-small-only offset-m4">
 						<!--div class="h-100" style="position:relative;margin-left:80%;text-align:left;border-style:solid;border-width:thin;border-radius:5px;"-->
 						<div style="text-align:left;">
-							<table cellspacing="0" white-space="nowrap" style="margin:0;padding:0;">
-								<tr>
+							<table cellspacing="0" white-space="nowrap" style="margin-top:0.5em;padding:0;">
+								<tr style="border:none;">
 									<td style="margin:0;padding:0;">
 										<i class="tiny material-icons inline-icon" style="margin-top:-20px;margin-bottom:-20px">date_range</i>
 									</td>
@@ -43,6 +50,7 @@
 										<span id="clock-date" class="white-text" style="text-align:center;">November, 17, 1911</span>
 									</td>
 								</tr>
+								<tr style="border:none;">
 									<td style="margin:0;padding:0;">
 										<i class="tiny material-icons inline-icon" style="margin-top:-20px;margin-bottom:-20px">access_time</i>
 									</td>
@@ -53,7 +61,7 @@
 							</table>
 						</div>
 					  </div>
-					  <div class="col s1" style="padding:0;margin-left:85%;">
+					  <div class="col s1 right" style="padding-right:4em;margin-left:0%;">
 					   <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons inline-icon center">menu</i></a>
 					  </div>
 				  </div>
@@ -67,6 +75,48 @@
 						<a href="#user"><img class="circle" src="{{ url_for('static', filename='images/nabbit_avi.jpeg') }}"></a>
 						<a href="#name"><span class="white-text name">Marz The Hun</span></a>
 						<a href="#email"><span class="white-text email">MarzFauxEmail@gmail.com</span></a>
+					</div>
+
+				</li>
+				<li>
+					<div class="row">
+						<div class="col s2" style="margin:1em;height:50px">
+							<div class="switch">
+								<label>
+									<input id="light-state-ctrl" type="checkbox" onchange="handle_light_state(this.checked)">
+									<span class="lever"></span>
+								</label>
+							</div>
+							<!--button id="light-state-ctrl" style="display:block;height:50px;width:50px;border-radius:50%;" onclick="handle_light_state()"><ion-icon name="sunny"></ion-icon></button-->
+						</div>
+						<div class="col s6 offset-s2">
+							<table id="lighting-options-tbl" class="" style="border-collapse:collapse;" cell-spacing="0">
+								<tr style="border:none;">
+									<td class="center">
+										<label>Brightness</label>
+									</td>
+									<td class="center" style="margin:0;padding:0;border:none;">
+										<form>
+											<p class="range-field">
+												<input id="light-intensity-ctrl" onchange="handle_light_intensity(this.value)" type="range" min="1" max="100" style="transform:rotate(-90deg);width:50px;">
+												<br>
+												<label id="light-intensity-lbl">25%</label>
+											</p>
+
+										</form>
+									</td>
+								</tr>
+								<tr style="border:none;">
+									<td>
+										<label>Color</label>
+									</td>
+									<td class="center" style="margin:0;padding:0;">
+										<input id="light-color-ctrl" onchange="handle_light_color(this.value)" type="color" value="#ffffff" >
+
+									</td>
+								</tr>
+							</table>
+						</div>
 					</div>
 				</li>
 				<!--li><a href="#!"><i class="material-icons">cloud</i>School Performance</a></li>
