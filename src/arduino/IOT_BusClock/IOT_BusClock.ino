@@ -35,10 +35,23 @@ const unsigned long short_press = 500;
 const unsigned long long_press = 2000;
 unsigned long last_tap = 0;
 
-const byte max_brightness = 200;
-const byte max_red = 255;
-const byte max_green = 255;
-const byte max_blue = 255;
+const uint16_t max_brightness = 200;
+const uint16_t max_red = 255;
+const uint16_t max_green = 255;
+const uint16_t max_blue = 255;
+bool LED_STATE = false;
+union IRGB {
+  uint64_t payload;
+  struct{
+    uint16_t b : 8;
+    uint16_t g : 8;
+    uint16_t r : 8;
+    uint16_t i : 8;
+  } vals;
+};
+
+IRGB current_irgb = {0xc8ffffff};
+
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -47,6 +60,7 @@ const char* ssid = _SSID;
 const char* password = _PASSWORD;
 
 ESP8266WebServer server(80);
+String server_response = "";
 
 void setup() {
   Serial.begin(115200);
@@ -81,11 +95,18 @@ void setup() {
 
   // server address functions
   server.on("/alarm", play_alarm);
+  server.on("/current_led_state", get_led_state);
+  server.on("/led", set_led_state);
 
   pinMode(BUTTON_PIN,INPUT_PULLUP);
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   setPixelRGB(25,max_red,max_green,max_blue);
+  current_irgb.vals.i = 25;
+  current_irgb.vals.r = max_red;
+  current_irgb.vals.g = max_green;
+  current_irgb.vals.b = max_blue;
+  LED_STATE = true;
 
   if(!display_1.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -314,13 +335,13 @@ void eyeAnimationDemo(){
   delay(100);
 }
 
-void setPixelRGB(byte brightness, byte r, byte g, byte b){
+void setPixelRGB(uint16_t brightness, uint16_t r, uint16_t g, uint16_t b){
   for(int i=0; i<NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color((brightness*r/255) , (brightness*g/255), (brightness*b/255)));
   }
   pixels.show();
-  String resp = "RGB Color: red=" + String(r) +", green=" + String(g) + ", blue=" +String(b);
-  server.send(200,"text/plain",resp);
+  // String resp = "RGB Color: red=" + String(r) +", green=" + String(g) + ", blue=" +String(b);
+  // server.send(200,"text/plain",resp);
 }
 
 void pixelDemo_ColorRange(){
@@ -424,5 +445,90 @@ void pixelDemo_Sequence(int val){
 void play_alarm(){
   // placeholder
   server.send(200, "text/plain", "{\"status\": \"playing alarm\"}");
-  music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+  //music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+}
+
+void parse_irgb(String _arg){
+  uint16_t val_holder_l;
+  uint16_t val_holder_r;
+  current_irgb.payload = 0x0;
+  for (uint8_t n = 0; n < 8 ; n+=2){
+    val_holder_l = 0;
+    val_holder_r = 0;
+
+    if (_arg[n] >= 'A'){
+      val_holder_l = (uint16_t)_arg[n] - 55;
+    } else {
+      val_holder_l = (uint16_t)_arg[n] - 48;
+    }
+    
+
+    if (_arg[n + 1] >= 'A'){
+      val_holder_r = ((uint16_t)_arg[n + 1] - 55);
+    } else {
+      val_holder_r = (uint16_t)_arg[n + 1] - 48;
+    }
+
+    switch (n){
+      case 0:
+        current_irgb.vals.i = (val_holder_l << 4) | val_holder_r;
+        break;
+      case 2:
+        current_irgb.vals.r = (val_holder_l << 4) | val_holder_r;
+        break;
+      case 4:
+        current_irgb.vals.g = (val_holder_l << 4) | val_holder_r;
+        break;
+      case 6:
+        current_irgb.vals.b = (val_holder_l << 4) | val_holder_r;
+        break;
+    }
+    
+  }
+
+  Serial.print("{ brightness: ");
+  Serial.print(current_irgb.vals.i, HEX);
+  Serial.print(", r: ");
+  Serial.print(current_irgb.vals.r, HEX);
+  Serial.print(", g: ");
+  Serial.print(current_irgb.vals.g, HEX);
+  Serial.print(", b: ");
+  Serial.print(current_irgb.vals.b, HEX);
+  Serial.println(" }");
+  
+}
+
+void get_led_state(){
+  server_response = "{\"state\":\"";
+  server_response += LED_STATE;
+  server_response += "\", \"irgb\":\"";
+  // server_response += String((int)(current_irgb.payload | 0xffffffff), HEX);
+  server_response += String((current_irgb.vals.i), HEX);
+  server_response += String((current_irgb.vals.r), HEX);
+  server_response += String((current_irgb.vals.g), HEX);
+  server_response += String((current_irgb.vals.b), HEX);
+  server_response += "\"}";
+  server.send(200, "text/plain", server_response);
+}
+
+void set_led_state(){
+  Serial.print("state: ");
+  Serial.println(server.arg("state").toInt());
+  if (server.arg("state").toInt() > 0){
+    LED_STATE = true;
+  } else {
+    LED_STATE = false;
+  }
+
+  parse_irgb(server.arg("irgb"));
+  Serial.print("incoming irgb: ");
+  Serial.println(server.arg("irgb"));
+  if (LED_STATE){
+    setPixelRGB(current_irgb.vals.i,current_irgb.vals.r,current_irgb.vals.g,current_irgb.vals.b);
+  } else {
+    setPixelRGB(0,current_irgb.vals.r,current_irgb.vals.g,current_irgb.vals.b);
+  }
+  
+  server_response = "{\"status\": \"led's set\"}";
+  server.send(200, "text/plain", server_response);
 }
