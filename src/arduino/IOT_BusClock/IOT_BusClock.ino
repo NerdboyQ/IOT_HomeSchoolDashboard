@@ -28,7 +28,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, LED_PIN1, NEO_GRB + NEO_KHZ800);
 #define DELAYVAL 50 // Time (in milliseconds) to pause between pixels
 
 
-#define BUTTON_PIN        D7 // On Trinket or Gemma, suggest changing this to 1
+#define BUTTON_PIN        D3 // Interrupt Pin for stopping alarms/changing display info/color
 bool isClicked = false;
 byte buttonClickCount = 0;
 const unsigned long short_press = 500;
@@ -51,7 +51,12 @@ union IRGB {
 };
 
 IRGB current_irgb = {0xc8ffffff};
+IRGB alarm_irgb = current_irgb;
 
+char* alarm_name;
+bool alarm_state_active = false;
+bool interrupt_was_clicked = false;
+unsigned long last_interrupt_time, time_delta;
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -61,6 +66,39 @@ const char* password = _PASSWORD;
 
 ESP8266WebServer server(80);
 String server_response = "";
+
+
+// ISR - Interrupt Service Routine
+ICACHE_RAM_ATTR void handle_button_state_change(){
+  if (alarm_state_active){
+    alarm_state_active = false;
+  } else {
+    if (interrupt_was_clicked){
+      interrupt_was_clicked = false;
+      // handle multiple press conditions
+      /*time_delta = millis() - last_interrupt_time;
+      if (time_delta < short_press){
+        setPixelRGB(max_brightness, 255, 0, 0);
+        delay(500);
+        setPixelRGB(max_brightness, max_red, max_green, max_blue);
+      }
+      else if (time_delta > short_press &&  time_delta < long_press){
+        setPixelRGB(max_brightness, 0, 255, 0);
+        delay(500);
+        setPixelRGB(max_brightness, max_red, max_green, max_blue);
+      }
+      else if (time_delta > long_press){
+        setPixelRGB(max_brightness, 0, 0, 255);
+        delay(500);
+        setPixelRGB(max_brightness, max_red, max_green, max_blue);
+      }*/
+      
+    } else {
+      interrupt_was_clicked = true;
+      last_interrupt_time = millis();
+    }
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -99,6 +137,8 @@ void setup() {
   server.on("/led", set_led_state);
 
   pinMode(BUTTON_PIN,INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), handle_button_state_change, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(motionSensor), detectsMovement, RISING);
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   setPixelRGB(25,max_red,max_green,max_blue);
@@ -161,6 +201,8 @@ void loop() {
       music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
     }
   }
+
+  /*
   if (digitalRead(BUTTON_PIN) != HIGH && !isClicked){
     isClicked = true;
     buttonClickCount = 1;
@@ -189,10 +231,10 @@ void loop() {
     Serial.println(digitalRead(BUTTON_PIN));
     Serial.print("button state3: ");
     Serial.println(digitalRead(BUTTON_PIN));
-    /*while(digitalRead(BUTTON_PIN) == LOW){
+    while(digitalRead(BUTTON_PIN) == LOW){
       Serial.println("holding...");
       delay(1);
-    }*/
+    }
     
     unsigned long time_delta = millis() - start_time;
     if (time_delta < short_press){
@@ -222,7 +264,7 @@ void loop() {
       setPixelRGB(max_brightness, max_red, max_green, max_blue);
     }
     isClicked = false;
-  }
+  }*/
   /*
   for(int i = 0; i < 4; i++){
     pixelDemo_Sequence(200);
@@ -234,6 +276,8 @@ void loop() {
   delay(1);
   server.handleClient();
 }
+
+
 
 struct new_coord {
   int x;
@@ -444,8 +488,15 @@ void pixelDemo_Sequence(int val){
 
 void play_alarm(){
   // placeholder
+  alarm_state_active = true;
+  String alarm_name = server.arg("name");
+  Serial.print("Currently running alarm: ");
+  Serial.println(alarm_name);
   server.send(200, "text/plain", "{\"status\": \"playing alarm\"}");
-  //music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+  while (alarm_state_active){
+    music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+    delay(3000);
+  }
 }
 
 void parse_irgb(String _arg){
