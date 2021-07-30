@@ -57,12 +57,12 @@ def adjust_led(state_irgb):
 	return json.loads(requests.get(url).text)
 
 
-@app.route('/trigger_alarm', methods=['GET', 'POST'])
-def trigger_school_alarm():
+@app.route('/trigger_alarm/<alarm_name>', methods=['GET', 'POST'])
+def trigger_school_alarm(alarm_name):
 	"""
 	Sends a get request to the arduino to trigger the appropriate alarm.
 	"""
-	return jsonify(requests.get("http://192.168.1.188/alarm").text)
+	return jsonify(requests.get(f"http://192.168.1.188/alarm?name={alarm_name}").text)
 
 
 @app.route('/get_alarms', methods=['GET'])
