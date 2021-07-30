@@ -157,32 +157,7 @@ void setup() {
     for(;;); // Don't proceed, loop forever
   }
 
-  // Show initial display buffer contents on the screen --
-  // the library initializes this with an Adafruit splash screen.
-  display_1.display();
-  display_2.display();
-  delay(2000); // Pause for 2 seconds
-  display_1.clearDisplay();
-  display_2.clearDisplay();
-
-  // Clear the buffer
-  display_1.setTextSize(2); // Draw 2X-scale text
-  display_1.setTextColor(SSD1306_WHITE);
-  display_1.setCursor(0, 0);
-  display_1.println(F("Bus Alarm!"));
-  display_1.fillCircle(display_2.width()/2,40,20,WHITE);
-  display_1.fillCircle(display_2.width()/2,45,3,BLACK);
-  display_1.display();      // Show initial text
-
-  // Clear the buffer
-  display_2.setTextSize(2); // Draw 2X-scale text
-  display_2.setTextColor(SSD1306_WHITE);
-  display_2.setCursor(0, 0);
-  display_2.println(F("The School"));
-  display_2.drawCircle(display_2.width()/2,40,20,WHITE);
-  display_2.fillCircle(display_2.width()/2,45,3,WHITE);
-  display_2.display();      // Show initial text
-  delay(100);
+  set_default_displays();
   
   // music_generator.PlayMelody1(music_generator.CScale_Notes, sizeof(music_generator.CScale_Notes)/sizeof(music_generator.CScale_Notes[0]));
   // kmusic_generator.PlayMelody(music_generator.CScale_melody, 1);
@@ -295,6 +270,35 @@ struct new_coord getNewCirclePosition(int8_t center_x,int8_t center_y, double an
   out_coord.x = int(center_x + radius*cos(angle*PI/180));
   out_coord.y = int(center_y - radius*sin(angle*PI/180));
   return out_coord;
+}
+
+void set_default_displays(){
+  // Show initial display buffer contents on the screen --
+  // the library initializes this with an Adafruit splash screen.
+  display_1.display();
+  display_2.display();
+  delay(2000); // Pause for 2 seconds
+  display_1.clearDisplay();
+  display_2.clearDisplay();
+
+  // Clear the buffer
+  display_1.setTextSize(2); // Draw 2X-scale text
+  display_1.setTextColor(SSD1306_WHITE);
+  display_1.setCursor(0, 0);
+  display_1.println(F("Bus Alarm!"));
+  display_1.fillCircle(display_2.width()/2,40,20,WHITE);
+  display_1.fillCircle(display_2.width()/2,45,3,BLACK);
+  display_1.display();      // Show initial text
+
+  // Clear the buffer
+  display_2.setTextSize(2); // Draw 2X-scale text
+  display_2.setTextColor(SSD1306_WHITE);
+  display_2.setCursor(0, 0);
+  display_2.println(F("The School"));
+  display_2.drawCircle(display_2.width()/2,40,20,WHITE);
+  display_2.fillCircle(display_2.width()/2,45,3,WHITE);
+  display_2.display();      // Show initial text
+  delay(100);
 }
 
 void eyeAnimationDemo(){
@@ -492,11 +496,27 @@ void play_alarm(){
   String alarm_name = server.arg("name");
   Serial.print("Currently running alarm: ");
   Serial.println(alarm_name);
-  server.send(200, "text/plain", "{\"status\": \"playing alarm\"}");
+
+  // Display the alarm name on the right OLED screen
+  display_1.clearDisplay();
+  display_1.setTextSize(2); // Draw 2X-scale text
+  display_1.setTextColor(SSD1306_WHITE);
+  display_1.setCursor(0, 0);
+  display_1.print(alarm_name);
+  display_1.println(F("!"));
+  display_1.display();
+  
+  server_response =  "{\"status\": \"playing alarm\", \"alarm_name\":\"";
+  server_response += alarm_name;
+  server_response += "\"}";
+  server.send(200, "text/plain", server_response);
+  
   while (alarm_state_active){
     music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
     delay(3000);
   }
+  set_default_displays();
+  eyeAnimationDemo();
 }
 
 void parse_irgb(String _arg){
