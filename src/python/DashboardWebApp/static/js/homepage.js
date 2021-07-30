@@ -38,7 +38,9 @@ var lighting_options_tbl = document.getElementById("lighting-options-tbl");
 var light_intensity_lbl = document.getElementById("light-intensity-lbl");
 var led_state = 0;
 var irgb = "c8ffffff";
+var alarms = [];
 get_led_status();
+get_alarms();
 
 setInterval(function() {
     update_clock();
@@ -47,11 +49,21 @@ setInterval(function() {
 
 function test_alarm(){
     console.log("testing arduino alarm...");
-    var path = "../trigger_alarm";
+    var path = "../trigger_alarm/" +alarms[0]["name"];
+    console.log(alarms[0]);
     $.getJSON(path,
         function(data) {
             console.log(data);
 
+        });
+}
+
+function get_alarms(){
+    var path = "../get_alarms";
+    $.getJSON(path,
+        function(data) {
+            console.log(data);
+            alarms = data;
         });
 }
 
