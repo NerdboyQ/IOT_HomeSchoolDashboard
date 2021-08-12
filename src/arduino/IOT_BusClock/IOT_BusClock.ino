@@ -31,8 +31,8 @@ Adafruit_NeoPixel pixels(NUMPIXELS, LED_PIN1, NEO_GRB + NEO_KHZ800);
 #define BUTTON_PIN        D3 // Interrupt Pin for stopping alarms/changing display info/color
 bool isClicked = false;
 byte buttonClickCount = 0;
-const unsigned long short_press = 500;
-const unsigned long long_press = 2000;
+const unsigned long idle_timeout = 5000;
+const unsigned long adjust_timeout = 3000;
 unsigned long last_tap = 0;
 
 const uint16_t max_brightness = 200;
@@ -53,13 +53,32 @@ union IRGB {
 IRGB current_irgb = {0xc8ffffff};
 IRGB alarm_irgb = current_irgb;
 
+const IRGB red = {0xc8ff0000}; // red
+const IRGB yellow = {0xc8ffff00}; // yellow
+const IRGB green = {0xc800ff00}; // green
+const IRGB cyan = {0xc800ffff}; // cyan
+const IRGB blue = {0xc80000ff}; // blue
+const IRGB magenta = {0xc8ff00ff}; // magenta
+const IRGB white = {0xc8fffff}; // white
+
+const IRGB DEFAULT_COLORS[7] = {
+  red,
+  yellow,
+  green,
+  cyan,
+  blue,
+  magenta,
+  white
+};
+
+uint16_t default_color_index = 0; // when this number is 7, the color is custom from the webapp
+
 char* alarm_name;
-//bool alarm_state_active = false;
 bool interrupt_was_clicked = false;
 unsigned long last_interrupt_time, time_delta;
 
-enum button_press{NONE, SHORT, LONG, EXTENDED};
-enum button_press button_press_state = NONE;
+enum DISPLAY_STATES {_IDLE, _DATE, _COLOR, _INTENSITY};
+enum DISPLAY_STATES display_state = _IDLE;
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -77,27 +96,43 @@ ICACHE_RAM_ATTR void handle_button_state_change(){
     //alarm_state_active = false;
     music_generator.currentlyPlaying = false;
   } else {
+    Serial.println("INTERRUPT!");
     if (interrupt_was_clicked){
-      interrupt_was_clicked = false;
+      
       // handle multiple press conditions
-      time_delta = millis() - last_interrupt_time;
-      if (time_delta < short_press){
-        button_press_state = SHORT;
-        Serial.println("SHORT");
+      switch (display_state){
+        case _IDLE:
+          Serial.println("current state: IDLE going to DATE");
+          display_state = _DATE;
+          break;
+        case _DATE:
+          Serial.println("current state: DATE going to COLOR");
+          display_state = _COLOR;
+          break;
+        case _COLOR:
+          if (millis() - last_interrupt_time >= adjust_timeout){
+            Serial.println("current state: COLOR going to INTENSITY");
+            display_state = _INTENSITY;
+          } else {
+            Serial.println("Color should be changing. [ISR]");
+            if (default_color_index < 6){
+              default_color_index+=1;
+            } else {
+              default_color_index = 0;
+            }
+          }
+          break;
+        case _INTENSITY:
+          Serial.println("current state: INTENSITY going to IDLE");
+          display_state = _IDLE;
+          break;
       }
-      else if (time_delta > short_press &&  time_delta < long_press){
-        button_press_state = LONG;
-        Serial.println("LONG");
-      }
-      else if (time_delta > long_press){
-        button_press_state = EXTENDED;
-        Serial.println("EXTENDED");
-      }
+      last_interrupt_time = millis();
       
     } else {
       interrupt_was_clicked = true;
       last_interrupt_time = millis();
-      Serial.println("INTERRUPT!");
+      
     }
   }
 }
@@ -139,7 +174,7 @@ void setup() {
   server.on("/led", set_led_state);
 
   pinMode(BUTTON_PIN,INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), handle_button_state_change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), handle_button_state_change, FALLING);
   //attachInterrupt(digitalPinToInterrupt(motionSensor), detectsMovement, RISING);
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
@@ -178,104 +213,22 @@ void loop() {
       music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
     }
 
-    switch (button_press_state){
-       case SHORT:
-        //
-        Serial.println("SHORT Button Press");
-        setPixelRGB(max_brightness, 255, 0, 0);
-        delay(500);
-        setPixelRGB(current_irgb.vals.i, current_irgb.vals.r, current_irgb.vals.g, current_irgb.vals.b);
-        button_press_state = NONE;
-        break;
-       case LONG:
-        //
-        Serial.println("LONG Button Press");
-        setPixelRGB(max_brightness, 0, 255, 0);
-        delay(500);
-        setPixelRGB(current_irgb.vals.i, current_irgb.vals.r, current_irgb.vals.g, current_irgb.vals.b);
-        button_press_state = NONE;
-        break;
-       case EXTENDED:
-        //
-        Serial.println("EXTENDED Button Press");
-        setPixelRGB(max_brightness, 0, 0, 255);
-        delay(500);
-        setPixelRGB(current_irgb.vals.i, current_irgb.vals.r, current_irgb.vals.g, current_irgb.vals.b);
-        button_press_state = NONE;
-        break;
-    }
+    
+  }
+  
+  if (default_color_index < 7 && interrupt_was_clicked == true) {
+    current_irgb = DEFAULT_COLORS[default_color_index];
+    setPixelRGB(current_irgb.vals.i,current_irgb.vals.r,current_irgb.vals.g,current_irgb.vals.b);
   }
 
-  /*
-  if (digitalRead(BUTTON_PIN) != HIGH && !isClicked){
-    isClicked = true;
-    buttonClickCount = 1;
-    unsigned long start_time = millis();
-    if (digitalRead(BUTTON_PIN) == LOW){
-      delay(100);
-      start_time = millis();
-    }
-    bool wait = true;
-    unsigned long w_time = millis();
-    while (wait){
-      if (digitalRead(BUTTON_PIN) == LOW){
-        w_time = start_time;
-        buttonClickCount+=1;
-        delay(100);
-      }
-      if (w_time - start_time >= 50){
-        wait = false;
-      } 
-      w_time = millis();
-    }
-    Serial.println("Clicked");
-    Serial.print("button state1: ");
-    Serial.println(digitalRead(BUTTON_PIN));
-    Serial.print("button state2: ");
-    Serial.println(digitalRead(BUTTON_PIN));
-    Serial.print("button state3: ");
-    Serial.println(digitalRead(BUTTON_PIN));
-    while(digitalRead(BUTTON_PIN) == LOW){
-      Serial.println("holding...");
-      delay(1);
-    }
-    
-    unsigned long time_delta = millis() - start_time;
-    if (time_delta < short_press){
-      Serial.println("Tapped");
-      setPixelRGB(max_brightness, 255, 0, 0);
-      delay(500);
-      setPixelRGB(max_brightness, max_red, max_green, max_blue);
-      if (buttonClickCount > 1){
-        Serial.print("Click count: ");
-        Serial.println(buttonClickCount);
-        buttonClickCount = 0;
-      }
-      Serial.print("delta: ");
-      Serial.println(start_time - last_tap);
-      last_tap = start_time;
-    }
-    else if (time_delta > short_press &&  time_delta < long_press){
-      Serial.println("Short Press");
-      setPixelRGB(max_brightness, 0, 255, 0);
-      delay(500);
-      setPixelRGB(max_brightness, max_red, max_green, max_blue);
-    }
-    else if (time_delta > long_press){
-      Serial.println("Long Press");
-      setPixelRGB(max_brightness, 0, 0, 255);
-      delay(500);
-      setPixelRGB(max_brightness, max_red, max_green, max_blue);
-    }
-    isClicked = false;
-  }*/
-  /*
-  for(int i = 0; i < 4; i++){
-    pixelDemo_Sequence(200);
+  if (millis() - last_interrupt_time >= idle_timeout && interrupt_was_clicked == true && display_state != _IDLE){
+    display_state = _IDLE;
+    last_interrupt_time = 0;
+    interrupt_was_clicked = false;
+    Serial.println("Idle Timeout met.");
+    set_default_displays();
     eyeAnimationDemo();
   }
-  pixelDemo_ColorRange();*/
-  
   //demoCscale();
   delay(1);
   server.handleClient();
