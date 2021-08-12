@@ -40,17 +40,22 @@ void MusicGenerator::PlayMelody2(Melody melody, int pin) {
 void MusicGenerator::PlayMelody1(MelodyNote melody[], int arr_size) {
   // iterate over the notes of the melody:
   for (int index = 0; index < arr_size; index++) {
+    if (currentlyPlaying){
   
-    // to calculate the note duration, take one second divided by the note type.
-    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int noteDuration = 1000 / melody[index].duration;
-    tone(D0, melody[index].key, noteDuration);
-
-    // to distinguish the notes, set a minimum time between them.
-    // the note's duration + 30% seems to work well:
-    int pauseBetweenNotes = noteDuration * 1.30;
-    delay(pauseBetweenNotes);
-    // stop the tone playing:
-    noTone(D0);
+      // to calculate the note duration, take one second divided by the note type.
+      //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+      int noteDuration = 1000 / melody[index].duration;
+      tone(D0, melody[index].key, noteDuration);
+  
+      // to distinguish the notes, set a minimum time between them.
+      // the note's duration + 30% seems to work well:
+      int pauseBetweenNotes = noteDuration * 1.30;
+      delay(pauseBetweenNotes);
+      // stop the tone playing:
+      noTone(D0);
+    } else {
+      //killing melody playback
+      break;
+    }
   }
 }

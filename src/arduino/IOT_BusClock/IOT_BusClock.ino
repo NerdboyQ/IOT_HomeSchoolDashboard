@@ -54,9 +54,12 @@ IRGB current_irgb = {0xc8ffffff};
 IRGB alarm_irgb = current_irgb;
 
 char* alarm_name;
-bool alarm_state_active = false;
+//bool alarm_state_active = false;
 bool interrupt_was_clicked = false;
 unsigned long last_interrupt_time, time_delta;
+
+enum button_press{NONE, SHORT, LONG, EXTENDED};
+enum button_press button_press_state = NONE;
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -70,32 +73,31 @@ String server_response = "";
 
 // ISR - Interrupt Service Routine
 ICACHE_RAM_ATTR void handle_button_state_change(){
-  if (alarm_state_active){
-    alarm_state_active = false;
+  if (music_generator.currentlyPlaying){
+    //alarm_state_active = false;
+    music_generator.currentlyPlaying = false;
   } else {
     if (interrupt_was_clicked){
       interrupt_was_clicked = false;
       // handle multiple press conditions
-      /*time_delta = millis() - last_interrupt_time;
+      time_delta = millis() - last_interrupt_time;
       if (time_delta < short_press){
-        setPixelRGB(max_brightness, 255, 0, 0);
-        delay(500);
-        setPixelRGB(max_brightness, max_red, max_green, max_blue);
+        button_press_state = SHORT;
+        Serial.println("SHORT");
       }
       else if (time_delta > short_press &&  time_delta < long_press){
-        setPixelRGB(max_brightness, 0, 255, 0);
-        delay(500);
-        setPixelRGB(max_brightness, max_red, max_green, max_blue);
+        button_press_state = LONG;
+        Serial.println("LONG");
       }
       else if (time_delta > long_press){
-        setPixelRGB(max_brightness, 0, 0, 255);
-        delay(500);
-        setPixelRGB(max_brightness, max_red, max_green, max_blue);
-      }*/
+        button_press_state = EXTENDED;
+        Serial.println("EXTENDED");
+      }
       
     } else {
       interrupt_was_clicked = true;
       last_interrupt_time = millis();
+      Serial.println("INTERRUPT!");
     }
   }
 }
@@ -174,6 +176,33 @@ void loop() {
       Serial.println(music_generator.CScale_melody.notes[0].key);
       
       music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+    }
+
+    switch (button_press_state){
+       case SHORT:
+        //
+        Serial.println("SHORT Button Press");
+        setPixelRGB(max_brightness, 255, 0, 0);
+        delay(500);
+        setPixelRGB(current_irgb.vals.i, current_irgb.vals.r, current_irgb.vals.g, current_irgb.vals.b);
+        button_press_state = NONE;
+        break;
+       case LONG:
+        //
+        Serial.println("LONG Button Press");
+        setPixelRGB(max_brightness, 0, 255, 0);
+        delay(500);
+        setPixelRGB(current_irgb.vals.i, current_irgb.vals.r, current_irgb.vals.g, current_irgb.vals.b);
+        button_press_state = NONE;
+        break;
+       case EXTENDED:
+        //
+        Serial.println("EXTENDED Button Press");
+        setPixelRGB(max_brightness, 0, 0, 255);
+        delay(500);
+        setPixelRGB(current_irgb.vals.i, current_irgb.vals.r, current_irgb.vals.g, current_irgb.vals.b);
+        button_press_state = NONE;
+        break;
     }
   }
 
@@ -492,7 +521,7 @@ void pixelDemo_Sequence(int val){
 
 void play_alarm(){
   // placeholder
-  alarm_state_active = true;
+  //alarm_state_active = true;
   String alarm_name = server.arg("name");
   Serial.print("Currently running alarm: ");
   Serial.println(alarm_name);
@@ -510,10 +539,14 @@ void play_alarm(){
   server_response += alarm_name;
   server_response += "\"}";
   server.send(200, "text/plain", server_response);
-  
-  while (alarm_state_active){
+  music_generator.currentlyPlaying = true;
+  while (music_generator.currentlyPlaying){
     music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
-    delay(3000);
+    if (music_generator.currentlyPlaying){
+      delay(3000);
+    } else {
+      break;
+    }
   }
   set_default_displays();
   eyeAnimationDemo();

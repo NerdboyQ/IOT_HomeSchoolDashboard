@@ -170,6 +170,7 @@ class Melody {
 // End Music Notes
 class MusicGenerator {
   public:
+    bool currentlyPlaying = false;
     
     MelodyNote CScale_Notes[21] = {
        MelodyNote(N_C5,2),
