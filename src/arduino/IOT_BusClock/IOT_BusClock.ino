@@ -32,7 +32,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, LED_PIN1, NEO_GRB + NEO_KHZ800);
 bool isClicked = false;
 byte buttonClickCount = 0;
 const unsigned long idle_timeout = 5000;
-const unsigned long adjust_timeout = 3000;
+const unsigned long adjust_timeout = 2000;
 unsigned long last_tap = 0;
 
 const uint16_t max_brightness = 200;
@@ -60,18 +60,28 @@ const IRGB cyan = {0xc800ffff}; // cyan
 const IRGB blue = {0xc80000ff}; // blue
 const IRGB magenta = {0xc8ff00ff}; // magenta
 const IRGB white = {0xc8fffff}; // white
+const IRGB off = {0x0}; // white
 
-const IRGB DEFAULT_COLORS[7] = {
+const IRGB DEFAULT_COLORS[8] = {
   red,
   yellow,
   green,
   cyan,
   blue,
   magenta,
-  white
+  white,
+  off
 };
 
-uint16_t default_color_index = 0; // when this number is 7, the color is custom from the webapp
+const uint16_t DEFAULT_INTENSITY[4] = {
+  50,
+  100,
+  150,
+  200
+};
+
+uint16_t default_color_index = 0; // when this number is 8, the color is custom from the webapp
+uint8_t default_intensity_index = 3; // when this number is 4, the intensity is a custom from the webapp
 
 char* alarm_name;
 bool interrupt_was_clicked = false;
@@ -79,6 +89,7 @@ unsigned long last_interrupt_time, time_delta;
 
 enum DISPLAY_STATES {_IDLE, _DATE, _COLOR, _INTENSITY};
 enum DISPLAY_STATES display_state = _IDLE;
+enum DISPLAY_STATES last_display_state = display_state;
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -115,7 +126,7 @@ ICACHE_RAM_ATTR void handle_button_state_change(){
             display_state = _INTENSITY;
           } else {
             Serial.println("Color should be changing. [ISR]");
-            if (default_color_index < 6){
+            if (default_color_index < 7){
               default_color_index+=1;
             } else {
               default_color_index = 0;
@@ -123,8 +134,17 @@ ICACHE_RAM_ATTR void handle_button_state_change(){
           }
           break;
         case _INTENSITY:
-          Serial.println("current state: INTENSITY going to IDLE");
-          display_state = _IDLE;
+          if (millis() - last_interrupt_time >= adjust_timeout){
+            Serial.println("current state: INTENSITY going to IDLE");
+            display_state = _IDLE;
+          } else {
+            Serial.println("Intensity should be changing. [ISR]");
+            if (default_intensity_index < 3){
+              default_intensity_index+=1;
+            } else {
+              default_intensity_index = 0;
+            }
+          }
           break;
       }
       last_interrupt_time = millis();
@@ -215,9 +235,16 @@ void loop() {
 
     
   }
-  
-  if (default_color_index < 7 && interrupt_was_clicked == true) {
-    current_irgb = DEFAULT_COLORS[default_color_index];
+
+  // Handles manual color changes
+  if ((default_color_index < 8 || default_intensity_index < 4) && interrupt_was_clicked == true && (display_state == _COLOR || display_state == _INTENSITY)) {
+    if (display_state == _COLOR){
+      current_irgb.vals.r = DEFAULT_COLORS[default_color_index].vals.r;
+      current_irgb.vals.g = DEFAULT_COLORS[default_color_index].vals.g;
+      current_irgb.vals.b = DEFAULT_COLORS[default_color_index].vals.b;
+    } else if (display_state == _INTENSITY) {
+      current_irgb.vals.i = DEFAULT_INTENSITY[default_intensity_index];
+    }
     setPixelRGB(current_irgb.vals.i,current_irgb.vals.r,current_irgb.vals.g,current_irgb.vals.b);
   }
 
@@ -228,6 +255,25 @@ void loop() {
     Serial.println("Idle Timeout met.");
     set_default_displays();
     eyeAnimationDemo();
+  }
+
+  switch (display_state){
+    case _IDLE:
+      if (last_display_state != _IDLE){
+        set_default_displays();
+        eyeAnimationDemo();
+        last_display_state = _IDLE;
+      }
+      break;
+    case _DATE:
+      display2ScreenMsg("Time & Date", "Aug. 12, 2021\n5:50pm");
+      break;
+    case _COLOR:
+      display2ScreenMsg("Adjust Color", "Click to Change the Color");
+      break;
+    case _INTENSITY:
+      display2ScreenMsg("Adjust Intensity", "Click to Change the intensity");
+      break;
   }
   //demoCscale();
   delay(1);
@@ -262,6 +308,8 @@ void set_default_displays(){
   delay(2000); // Pause for 2 seconds
   display_1.clearDisplay();
   display_2.clearDisplay();
+  display_1.stopscroll();
+  display_2.stopscroll();
 
   // Clear the buffer
   display_1.setTextSize(2); // Draw 2X-scale text
@@ -281,6 +329,28 @@ void set_default_displays(){
   display_2.fillCircle(display_2.width()/2,45,3,WHITE);
   display_2.display();      // Show initial text
   delay(100);
+}
+
+void display2ScreenMsg(String left_msg, String right_msg) {
+  if (display_state != last_display_state){
+    display_1.clearDisplay();  // right screen
+    display_1.setTextSize(2);
+    display_2.clearDisplay();  // left screen
+    display_2.setTextSize(2);
+
+    display_1.setCursor(0,24);
+    display_1.startscrollleft(0x00, 0x07);
+    display_2.setCursor(0,24);
+    display_2.startscrollleft(0x00, 0x07);
+
+    display_1.println(right_msg);
+    display_2.println(left_msg);
+
+    display_1.display();
+    display_2.display();
+    delay(100);
+    last_display_state = display_state;
+  }
 }
 
 void eyeAnimationDemo(){
