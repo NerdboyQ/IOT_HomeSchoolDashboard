@@ -31,8 +31,8 @@ Adafruit_NeoPixel pixels(NUMPIXELS, LED_PIN1, NEO_GRB + NEO_KHZ800);
 #define BUTTON_PIN        D3 // Interrupt Pin for stopping alarms/changing display info/color
 bool isClicked = false;
 byte buttonClickCount = 0;
-const unsigned long idle_timeout = 5000;
-const unsigned long adjust_timeout = 2000;
+const unsigned long idle_timeout = 10000; // 10 seconds
+const unsigned long adjust_timeout = 2000; // 2 seconds
 unsigned long last_tap = 0;
 
 const uint16_t max_brightness = 200;
@@ -93,12 +93,14 @@ enum DISPLAY_STATES last_display_state = display_state;
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
 
 const char* ssid = _SSID;
 const char* password = _PASSWORD;
 
 ESP8266WebServer server(80);
 String server_response = "";
+HTTPClient http;
 
 
 // ISR - Interrupt Service Routine
@@ -215,6 +217,7 @@ void setup() {
   }
 
   set_default_displays();
+  Serial.println(get_request("http://192.168.1.153:5003/datetime"));
   
   // music_generator.PlayMelody1(music_generator.CScale_Notes, sizeof(music_generator.CScale_Notes)/sizeof(music_generator.CScale_Notes[0]));
   // kmusic_generator.PlayMelody(music_generator.CScale_melody, 1);
@@ -266,7 +269,8 @@ void loop() {
       }
       break;
     case _DATE:
-      display2ScreenMsg("Time & Date", "Aug. 12, 2021\n5:50pm");
+      Serial.println(get_request("http://192.168.1.153:5003/datetime"));
+      display2ScreenMsg("Time & Date", get_request("http://192.168.1.153:5003/datetime"));
       break;
     case _COLOR:
       display2ScreenMsg("Adjust Color", "Click to Change the Color");
@@ -338,9 +342,12 @@ void display2ScreenMsg(String left_msg, String right_msg) {
     display_2.clearDisplay();  // left screen
     display_2.setTextSize(2);
 
-    display_1.setCursor(0,24);
+    display_1.setTextWrap(false);
+    display_2.setTextWrap(false);
+
+    display_1.setCursor(0,32);
     display_1.startscrollleft(0x00, 0x07);
-    display_2.setCursor(0,24);
+    display_2.setCursor(0,32);
     display_2.startscrollleft(0x00, 0x07);
 
     display_1.println(right_msg);
@@ -658,4 +665,12 @@ void set_led_state(){
   
   server_response = "{\"status\": \"led's set\"}";
   server.send(200, "text/plain", server_response);
+}
+
+String get_request(String address){
+  
+  http.begin(address);
+  http.GET();
+  //String payload = http.getString();
+  return http.getString();
 }
