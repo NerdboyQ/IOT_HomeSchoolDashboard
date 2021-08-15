@@ -259,25 +259,27 @@ void loop() {
     set_default_displays();
     eyeAnimationDemo();
   }
-
-  switch (display_state){
-    case _IDLE:
-      if (last_display_state != _IDLE){
-        set_default_displays();
-        eyeAnimationDemo();
-        last_display_state = _IDLE;
-      }
-      break;
-    case _DATE:
-      Serial.println(get_request("http://192.168.1.153:5003/datetime"));
-      display2ScreenMsg("Time & Date", get_request("http://192.168.1.153:5003/datetime"));
-      break;
-    case _COLOR:
-      display2ScreenMsg("Adjust Color", "Click to Change the Color");
-      break;
-    case _INTENSITY:
-      display2ScreenMsg("Adjust Intensity", "Click to Change the intensity");
-      break;
+  
+  if (last_display_state != display_state){
+    switch (display_state){
+      case _IDLE:
+        if (last_display_state != _IDLE){
+          set_default_displays();
+          //eyeAnimationDemo();
+          last_display_state = _IDLE;
+        }
+        break;
+      case _DATE:
+        Serial.println(get_request("http://192.168.1.153:5003/datetime"));
+        display2ScreenMsg("Time &\nDate", get_request("http://192.168.1.153:5003/datetime"));
+        break;
+      case _COLOR:
+        display2ScreenMsg("Adjust\nColor", "Click to\nChange the\nColor");
+        break;
+      case _INTENSITY:
+        display2ScreenMsg("Adjust\nIntensity", "Click to\nChange the\nIntensity");
+        break;
+    }
   }
   //demoCscale();
   delay(1);
@@ -342,13 +344,13 @@ void display2ScreenMsg(String left_msg, String right_msg) {
     display_2.clearDisplay();  // left screen
     display_2.setTextSize(2);
 
-    display_1.setTextWrap(false);
-    display_2.setTextWrap(false);
+    //display_1.setTextWrap(false);
+    //display_2.setTextWrap(false);
 
-    display_1.setCursor(0,32);
-    display_1.startscrollleft(0x00, 0x07);
-    display_2.setCursor(0,32);
-    display_2.startscrollleft(0x00, 0x07);
+    display_1.setCursor(0,16);
+    //display_1.startscrollleft(0x00, 0x1F);
+    display_2.setCursor(0,24);
+    //display_2.startscrollleft(0x00, 0xF1);
 
     display_1.println(right_msg);
     display_2.println(left_msg);
