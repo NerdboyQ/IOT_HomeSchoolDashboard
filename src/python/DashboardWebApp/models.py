@@ -9,6 +9,13 @@ def get_date_string():
 	return dt.now().date().strftime("%b %d, %Y")
 
 
+def get_datetime_string():
+	"""
+	Gets the current date & time then converts into a more user friendly string format.
+	"""
+	return dt.now().time().strftime("%I:%M%p") + dt.now().date().strftime(" %b %d, %Y")
+
+
 class BehaviorRecord(db.Model):
 	"""
 	BehaviorRecord model for recording happy, sad, or bonus points.

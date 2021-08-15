@@ -65,6 +65,14 @@ def trigger_school_alarm(alarm_name):
 	return jsonify(requests.get(f"http://192.168.1.188/alarm?name={alarm_name}").text)
 
 
+@app.route('/datetime', methods=['GET'])
+def ge_current_datetime():
+	"""
+	Returns the current date & time to the arduino upon request.
+	"""
+	return jsonify(get_datetime_string())
+
+
 @app.route('/get_alarms', methods=['GET'])
 def get_alarms_from_db():
 	"""
