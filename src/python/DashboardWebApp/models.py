@@ -13,7 +13,7 @@ def get_datetime_string():
 	"""
 	Gets the current date & time then converts into a more user friendly string format.
 	"""
-	return dt.now().time().strftime("%I:%M%p") + dt.now().date().strftime(" %b %d, %Y")
+	return dt.now().time().strftime("%I:%M%p") + dt.now().date().strftime("\n%B %d,\n%Y")
 
 
 class BehaviorRecord(db.Model):
