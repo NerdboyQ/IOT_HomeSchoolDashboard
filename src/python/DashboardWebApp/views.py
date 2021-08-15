@@ -70,7 +70,7 @@ def ge_current_datetime():
 	"""
 	Returns the current date & time to the arduino upon request.
 	"""
-	return jsonify(get_datetime_string())
+	return get_datetime_string()
 
 
 @app.route('/get_alarms', methods=['GET'])
