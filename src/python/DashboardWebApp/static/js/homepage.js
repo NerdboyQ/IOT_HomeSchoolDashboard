@@ -39,13 +39,22 @@ var light_intensity_lbl = document.getElementById("light-intensity-lbl");
 var led_state = 0;
 var irgb = "c8ffffff";
 var alarms = [];
+var last_alarm_datetime;
+var last_alarm;
 get_led_status();
 get_alarms();
 
+// update the clock, behavior points, & check for alarm triggers every 100ms
 setInterval(function() {
     update_clock();
     handle_behavior_points(0);
+    is_alarm_time();
 }, 100);
+
+// update the alarms list every 15min
+setInterval(function() {
+    get_alarms();
+}, 900000);
 
 function test_alarm(){
     console.log("testing arduino alarm...");
@@ -65,6 +74,37 @@ function get_alarms(){
             console.log(data);
             alarms = data;
         });
+}
+
+function is_alarm_time(){
+    for (var i in alarms){
+        var current_date = new CustomDateObj(new Date());
+        var alarm = alarms[i];
+
+        // Check Days, Start Date, Repeat, & Time
+        var hr = alarm["time"].split(":")[0];
+        var min = alarm["time"].split(":")[1];
+        hr = parseInt(hr);
+        var ampm = min.substr(-2).toUpperCase();
+        min = parseInt(min.substr(0,2));
+        // Test to check if alarm triggers at correct time.
+        if (hr == parseInt(current_date.hr) && min == parseInt(current_date.minute) && ampm == current_date.am_pm){
+            // avoid resending the alarm trigger once already triggered.
+            if (last_alarm != alarm && last_alarm_datetime != current_date){
+                var path = "../trigger_alarm/" +alarm["name"].replace(" ", "\n");
+                console.log(alarm["name"]);
+                last_alarm = alarm;
+                last_alarm_datetime = current_date;
+                $.getJSON(path,
+                    function(data) {
+                        console.log(data);
+
+                    });
+            }
+        }
+        //console.log(current_date);
+    }
+    return false;
 }
 
 function get_led_status(){
@@ -185,58 +225,44 @@ function handle_behavior_points(btn_id){
 
 function update_clock(){
     const formatter = new Intl.DateTimeFormat('us', { month: 'long' });
-    var date = new Date();
-    var day = date.getDay();
-    var hr = date.getHours();
-    var min = date.getMinutes();
-    var ampm = "PM";
-    // console.log(date);
+    var date = new CustomDateObj(new Date());
 
-    switch (day){
-        case 0:
-            day = "Sunday";
-            break;
-        case 1:
-            day = "Monday";
-            break;
-        case 2:
-            day = "Tuesday";
-            break;
-        case 3:
-            day = "Wednesday";
-            break;
-        case 4:
-            day = "Thursday";
-            break;
-        case 5:
-            day = "Friday";
-            break;
-        case 6:
-            day = "Saturday";
-            break;
-    }
-    if (hr < 12){
-        ampm = "AM";
-        if (hr == 0){
-            hr = 12;
-        }
+    clock_date_fld.innerHTML = date.day_text + " " + formatter.format(date.date) + " " + date.day_date + ", " + date.year;
+    clock_time_fld.innerHTML = date.hr + ":" + date.minute + date.am_pm
 
-        if (hr < 10){
-            hr = "0" + hr;
-        }
-    }
-    else if (hr > 12){
-        hr -= 12;
-        if (hr < 0){
-            hr = hr * -1;
-        }
+}
+
+
+class CustomDateObj {
+    constructor(date){
+        this.date = date;
+        this.day_date = date.getDate();
+        this.day_number = date.getDay();
+        this.day_text = Intl.DateTimeFormat('en', { weekday: 'long' }).format(date);
+        this.am_pm = "PM";
+        this.hr = date.getHours();
+        this.minute = ('0' + date.getMinutes()).slice(-2);
+        this.year = date.getUTCFullYear();
+        this.month_number = date.getMonth();
+        this.month_text = Intl.DateTimeFormat('en', { month: 'long' }).format(this.month_number);
+        this.get_adjusted_time();
     }
 
-    clock_date_fld.innerHTML = day + " " + formatter.format(date) + " " + date.getDate() + ", " + date.getFullYear();
-    if (min < 10){
-        clock_time_fld.innerHTML = hr + ":0" + date.getMinutes() + ampm;
-    } else {
-        clock_time_fld.innerHTML = hr + ":" + date.getMinutes() + ampm;
+    get_adjusted_time(){
+        if (this.hr < 12){
+            this.am_pm = "AM";
+            if (this.hr == 0){
+                this.hr = 12;
+            }
+        }
+        else if (this.hr > 12){
+            this.hr = this.hr - 12;
+            if (this.hr < 0){
+                this.hr = this.hr * -1;
+            }
+        }
+
+        this.hr = ('0' + this.hr).slice(-2);
     }
 
 }

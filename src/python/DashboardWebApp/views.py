@@ -66,7 +66,7 @@ def trigger_school_alarm(alarm_name):
 
 
 @app.route('/datetime', methods=['GET'])
-def ge_current_datetime():
+def get_current_datetime():
 	"""
 	Returns the current date & time to the arduino upon request.
 	"""
