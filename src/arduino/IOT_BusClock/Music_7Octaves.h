@@ -270,6 +270,47 @@ class MusicGenerator {
        MelodyNote(N_E5_FLAT,4),
        MelodyNote(N_D5,4)
     };
+
+
+    // Played in 3/4 timing
+    MelodyNote HarryPotterTheme_Notes[30] {
+       MelodyNote(N_B4,4),
+       MelodyNote(N_E5,8),
+       MelodyNote(N_G5,16),
+       MelodyNote(N_F5_SHARP,4),
+       MelodyNote(N_E5,4),
+       MelodyNote(N_B5,8),
+
+       MelodyNote(N_A6,2),
+       MelodyNote(N_F5_SHARP,2),
+       
+       MelodyNote(N_E5,8),
+       MelodyNote(N_G5,16),
+       MelodyNote(N_F5_SHARP,4),
+       MelodyNote(N_D5_SHARP,4),
+       MelodyNote(N_F5,8),
+       MelodyNote(N_B4,1),
+       
+       MelodyNote(N_B4,4),
+       MelodyNote(N_E5,10),
+       MelodyNote(N_G5,8),
+       MelodyNote(N_F5,8),
+       MelodyNote(N_E5,4),
+       MelodyNote(N_B5,8),
+
+       MelodyNote(N_D6,4),
+       MelodyNote(N_C6,8),
+       MelodyNote(N_D6_FLAT,4),
+
+       MelodyNote(N_G5_SHARP,8),
+       MelodyNote(N_C6,10),
+       MelodyNote(N_B5_FLAT,8),
+       MelodyNote(N_B5,8),
+       
+       MelodyNote(N_B4_FLAT,4),
+       MelodyNote(N_G5_SHARP,8),
+       MelodyNote(N_E5,1),
+    };
     
     Melody CScale_melody = Melody(CScale_Notes, 21);
     //CScale_melody.notes = CScale_Notes;
