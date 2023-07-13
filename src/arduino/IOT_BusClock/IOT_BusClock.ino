@@ -2,6 +2,7 @@
 
 #include "Music_7Octaves.h"
 #include "HomeSecurity.h" // <- used to store Wifi SSID & PASSWORD safely
+#include "CustomImages.h"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -290,6 +291,49 @@ void loop() {
   server.handleClient();
 }
 
+void play_alarm(){
+  // placeholder
+  //alarm_state_active = true;
+  String alarm_name = server.arg("name");
+  Serial.print("Currently running alarm: ");
+  Serial.println(alarm_name);
+
+  // Display the alarm name on the right OLED screen
+  display_1.clearDisplay();
+  display_1.setTextSize(2); // Draw 2X-scale text
+  display_1.setTextColor(SSD1306_WHITE);
+  display_1.setCursor(0, 0);
+  display_1.print(alarm_name);
+  display_1.println(F("!"));
+  display_1.display();
+  
+  server_response =  "{\"status\": \"playing alarm\", \"alarm_name\":\"";
+  server_response += alarm_name;
+  server_response += "\"}";
+  server.send(200, "text/plain", server_response);
+  music_generator.currentlyPlaying = true;
+  while (music_generator.currentlyPlaying){
+    if (alarm_name.indexOf("Drankin") > -1){
+      display_2.clearDisplay();
+      display_2.drawBitmap(0, 0, bitmap_drankinPatna, 128, 64, WHITE); 
+      display_2.display();
+      music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]), NORMAL_TIME);
+    } else if (alarm_name.indexOf("Potter") > -1){
+      display_2.clearDisplay();
+      display_2.drawBitmap(0, 0, bitmap_harryPotter, 128, 64, WHITE); 
+      display_2.display();
+      music_generator.PlayMelody1(music_generator.HarryPotterTheme_Notes, sizeof(music_generator.HarryPotterTheme_Notes)/sizeof(music_generator.HarryPotterTheme_Notes[0]), HALF_TIME);
+    }
+    
+    if (music_generator.currentlyPlaying){
+      delay(3000);
+      music_generator.currentlyPlaying = false;
+    } else {
+      break;
+    }
+  }
+  set_default_displays();
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 
 
 struct new_coord {
@@ -553,45 +597,6 @@ void pixelDemo_Sequence(int val){
     //Serial.print("Pixel number: ");
     //Serial.println(i);
   }
-}
-
-void play_alarm(){
-  // placeholder
-  //alarm_state_active = true;
-  String alarm_name = server.arg("name");
-  Serial.print("Currently running alarm: ");
-  Serial.println(alarm_name);
-
-  // Display the alarm name on the right OLED screen
-  display_1.clearDisplay();
-  display_1.setTextSize(2); // Draw 2X-scale text
-  display_1.setTextColor(SSD1306_WHITE);
-  display_1.setCursor(0, 0);
-  display_1.print(alarm_name);
-  display_1.println(F("!"));
-  display_1.display();
-  
-  server_response =  "{\"status\": \"playing alarm\", \"alarm_name\":\"";
-  server_response += alarm_name;
-  server_response += "\"}";
-  server.send(200, "text/plain", server_response);
-  music_generator.currentlyPlaying = true;
-  while (music_generator.currentlyPlaying){
-    if (alarm_name.indexOf("Drankin") > -1){
-      music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]), NORMAL_TIME);
-    } else if (alarm_name.indexOf("Potter") > -1){
-      music_generator.PlayMelody1(music_generator.HarryPotterTheme_Notes, sizeof(music_generator.HarryPotterTheme_Notes)/sizeof(music_generator.HarryPotterTheme_Notes[0]), HALF_TIME);
-    }
-    
-    if (music_generator.currentlyPlaying){
-      delay(3000);
-      music_generator.currentlyPlaying = false;
-    } else {
-      break;
-    }
-  }
-  set_default_displays();
-  eyeAnimationDemo();
 }
 
 void parse_irgb(String _arg){
