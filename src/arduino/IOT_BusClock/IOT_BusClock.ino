@@ -1,12 +1,14 @@
 #include <Adafruit_NeoPixel.h>
 
 #include "Music_7Octaves.h"
-#include "HomeSecurity.h"
+#include "HomeSecurity.h" // <- used to store Wifi SSID & PASSWORD safely
 
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+
+#define HOST_NAME "IOT-BUS"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -95,6 +97,7 @@ enum DISPLAY_STATES last_display_state = display_state;
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
+// stored in HomeSecurity.h for security reasons
 const char* ssid = _SSID;
 const char* password = _PASSWORD;
 
@@ -165,6 +168,7 @@ void setup() {
   Serial.print("Wifi connecting to ");
   Serial.println(ssid);
 
+  WiFi.hostname(HOST_NAME);
   WiFi.begin(ssid,password);
 
   Serial.println();
@@ -217,7 +221,7 @@ void setup() {
   }
 
   set_default_displays();
-  Serial.println(get_request("http://192.168.1.153:5003/datetime"));
+  //Serial.println(get_request("http://192.168.1.153:5003/datetime"));
   
   // music_generator.PlayMelody1(music_generator.CScale_Notes, sizeof(music_generator.CScale_Notes)/sizeof(music_generator.CScale_Notes[0]));
   // kmusic_generator.PlayMelody(music_generator.CScale_melody, 1);
@@ -270,8 +274,8 @@ void loop() {
         }
         break;
       case _DATE:
-        Serial.println(get_request("http://192.168.1.153:5003/datetime"));
-        display2ScreenMsg("Time &\nDate", get_request("http://192.168.1.153:5003/datetime"));
+        //Serial.println(get_request("http://192.168.1.153:5003/datetime"));
+        //display2ScreenMsg("Time &\nDate", get_request("http://192.168.1.153:5003/datetime"));
         break;
       case _COLOR:
         display2ScreenMsg("Adjust\nColor", "Click to\nChange the\nColor");
@@ -573,9 +577,15 @@ void play_alarm(){
   server.send(200, "text/plain", server_response);
   music_generator.currentlyPlaying = true;
   while (music_generator.currentlyPlaying){
-    music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+    if (alarm_name.indexOf("Drankin") > -1){
+      music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+    } else if (alarm_name.indexOf("Potter") > -1){
+      music_generator.PlayMelody1(music_generator.HarryPotterTheme_Notes, sizeof(music_generator.HarryPotterTheme_Notes)/sizeof(music_generator.HarryPotterTheme_Notes[0]));
+    }
+    
     if (music_generator.currentlyPlaying){
       delay(3000);
+      music_generator.currentlyPlaying = false;
     } else {
       break;
     }
@@ -668,11 +678,11 @@ void set_led_state(){
   server_response = "{\"status\": \"led's set\"}";
   server.send(200, "text/plain", server_response);
 }
-
+/* 
 String get_request(String address){
   
-  http.begin(address);
+  http.begin(address); //Deprecated Reference
   http.GET();
   //String payload = http.getString();
   return http.getString();
-}
+}*/
