@@ -237,7 +237,7 @@ void loop() {
       Serial.print("The first freq: ");
       Serial.println(music_generator.CScale_melody.notes[0].key);
       
-      music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+      music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]), NORMAL_TIME);
     }
 
     
@@ -578,9 +578,9 @@ void play_alarm(){
   music_generator.currentlyPlaying = true;
   while (music_generator.currentlyPlaying){
     if (alarm_name.indexOf("Drankin") > -1){
-      music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]));
+      music_generator.PlayMelody1(music_generator.DrankinPatna_Notes, sizeof(music_generator.DrankinPatna_Notes)/sizeof(music_generator.DrankinPatna_Notes[0]), NORMAL_TIME);
     } else if (alarm_name.indexOf("Potter") > -1){
-      music_generator.PlayMelody1(music_generator.HarryPotterTheme_Notes, sizeof(music_generator.HarryPotterTheme_Notes)/sizeof(music_generator.HarryPotterTheme_Notes[0]));
+      music_generator.PlayMelody1(music_generator.HarryPotterTheme_Notes, sizeof(music_generator.HarryPotterTheme_Notes)/sizeof(music_generator.HarryPotterTheme_Notes[0]), HALF_TIME);
     }
     
     if (music_generator.currentlyPlaying){
