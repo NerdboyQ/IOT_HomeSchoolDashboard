@@ -16,6 +16,7 @@
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 Adafruit_SSD1306 display_2(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+uint16_t right_font_sz, left_font_sz, right_cursor_pos, left_cursor_pos;
 
 MusicGenerator music_generator = MusicGenerator();
 
@@ -97,6 +98,26 @@ enum DISPLAY_STATES last_display_state = display_state;
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+#include <time.h>
+
+const long utcOffsetInSeconds = 3600 * 5; // 1 hr 3600s, * the regional offset
+const String daysOfTheWeek[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+const String monthsOfTheYear[12] = {
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+};
 
 // stored in HomeSecurity.h for security reasons
 const char* ssid = _SSID;
@@ -106,6 +127,26 @@ ESP8266WebServer server(80);
 String server_response = "";
 HTTPClient http;
 
+// Define client to get time
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
+
+uint16_t dd, hh, mm, ss;
+long YYYY;
+String day = "Sunday";
+String month = "January";
+
+// The time.h header was included to get the accurate date
+time_t epochTime = timeClient.getEpochTime();
+struct tm *ptm = gmtime ((time_t *)&epochTime);
+
+#define MY_TZ "PST8PDT,M3.2.0,M11.1.0"
+#define MY_NTP_SERVER "at.pool.ntp.org"
+
+time_t now;
+tm tm;
+
+String left_msg, right_msg, time_abbrv;
 
 // ISR - Interrupt Service Routine
 ICACHE_RAM_ATTR void handle_button_state_change(){
@@ -169,6 +210,9 @@ void setup() {
   Serial.print("Wifi connecting to ");
   Serial.println(ssid);
 
+  // Without this line, time_t will not work and the year will be wrong.
+  configTime(MY_TZ, MY_NTP_SERVER);
+
   WiFi.hostname(HOST_NAME);
   WiFi.begin(ssid,password);
 
@@ -218,7 +262,7 @@ void setup() {
   }
   if(!display_2.begin(SSD1306_SWITCHCAPVCC, 0x3D)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for(;;); // Don't proceed, loop epochTimeforever
   }
 
   set_default_displays();
@@ -226,9 +270,73 @@ void setup() {
   
   // music_generator.PlayMelody1(music_generator.CScale_Notes, sizeof(music_generator.CScale_Notes)/sizeof(music_generator.CScale_Notes[0]));
   // kmusic_generator.PlayMelody(music_generator.CScale_melody, 1);
+  
+  timeClient.begin();
 }
 
 void loop() {
+  timeClient.update();
+  time(&now);
+  localtime_r(&now, &tm);
+  
+  epochTime = timeClient.getEpochTime();
+  ptm = gmtime ((time_t *)&epochTime);
+  day = daysOfTheWeek[timeClient.getDay()];
+  month = monthsOfTheYear[ptm->tm_mon];
+  dd = tm.tm_mday;
+  YYYY = tm.tm_year + 1900;
+  hh = tm.tm_hour;
+  mm = timeClient.getMinutes();
+  ss = timeClient.getSeconds();
+  
+  left_msg = day + "\n" + String(month) + " " + String(dd) + "\n" + String(YYYY);
+  if (hh < 10){
+    right_msg += "0" + String(hh) + ":";
+    time_abbrv = "AM";
+  } else {
+    if (hh > 12 && hh-12 <= 9){
+      right_msg += "0" + String(hh-12) + ":";
+      time_abbrv = "PM";
+    } else if (hh > 12){
+      right_msg += String(hh-12) + ":";
+      time_abbrv = "PM";
+    } else {
+      right_msg += String(hh) + ":";
+      time_abbrv = "AM";
+    }
+  }
+  if (mm < 10) {
+    right_msg += "0" + String(mm) + ":";
+  } else {
+    right_msg += String(mm) + ":";
+  }
+  if (ss < 10) {
+    right_msg += "0" + String(ss);
+  } else {
+    right_msg += String(ss);
+  }
+  right_msg += time_abbrv;
+
+  Serial.print(day);
+  Serial.print(" ");
+  Serial.print(dd);
+  Serial.print(" ");
+  Serial.print(month);
+  Serial.print(", ");
+  Serial.print(YYYY);
+  Serial.print("[");
+  Serial.print(tm.tm_year+1900);
+  Serial.print("]");
+  Serial.print(" ");
+  Serial.print(hh);
+  Serial.print(":");
+  Serial.print(mm);
+  Serial.print(":");
+  Serial.println(ss);
+  display_state = _DATE;
+  display2ScreenMsg(left_msg, right_msg);
+  display_state = _IDLE;
+  
   if (Serial.available() > 0){
     char in_char = Serial.read();
     Serial.println(in_char);
@@ -268,11 +376,11 @@ void loop() {
   if (last_display_state != display_state){
     switch (display_state){
       case _IDLE:
-        if (last_display_state != _IDLE){
+        /*if (last_display_state != _IDLE){
           set_default_displays();
           //eyeAnimationDemo();
           last_display_state = _IDLE;
-        }
+        }*/
         break;
       case _DATE:
         //Serial.println(get_request("http://192.168.1.153:5003/datetime"));
@@ -386,18 +494,34 @@ void set_default_displays(){
 }
 
 void display2ScreenMsg(String left_msg, String right_msg) {
+  switch(display_state){
+
+    case _DATE:
+       left_font_sz = 2;
+       right_font_sz = 2.5;
+       left_cursor_pos = 2;
+       right_cursor_pos = 16;
+       break; 
+
+    default:
+       left_font_sz = 2;
+       right_font_sz = 2;
+       left_cursor_pos = 24;
+       right_cursor_pos = 16;
+       break; 
+  }
   if (display_state != last_display_state){
     display_1.clearDisplay();  // right screen
-    display_1.setTextSize(2);
+    display_1.setTextSize(right_font_sz);
     display_2.clearDisplay();  // left screen
-    display_2.setTextSize(2);
+    display_2.setTextSize(left_font_sz);
 
     //display_1.setTextWrap(false);
     //display_2.setTextWrap(false);
 
-    display_1.setCursor(0,16);
+    display_1.setCursor(0,right_cursor_pos);
     //display_1.startscrollleft(0x00, 0x1F);
-    display_2.setCursor(0,24);
+    display_2.setCursor(0,left_cursor_pos);
     //display_2.startscrollleft(0x00, 0xF1);
 
     display_1.println(right_msg);
