@@ -87,7 +87,7 @@ const uint16_t DEFAULT_INTENSITY[4] = {
 uint16_t default_color_index = 0; // when this number is 8, the color is custom from the webapp
 uint8_t default_intensity_index = 3; // when this number is 4, the intensity is a custom from the webapp
 
-char* alarm_name;
+String alarm_name, alarm_msg;
 bool interrupt_was_clicked = false;
 unsigned long last_interrupt_time, time_delta;
 
@@ -402,7 +402,10 @@ void loop() {
 void play_alarm(){
   // placeholder
   //alarm_state_active = true;
-  String alarm_name = server.arg("name");
+  
+  parse_irgb(server.arg("irgb"));
+  alarm_msg = server.arg("msg");
+  alarm_name = server.arg("name");
   Serial.print("Currently running alarm: ");
   Serial.println(alarm_name);
 
@@ -441,6 +444,7 @@ void play_alarm(){
     }
   }
   set_default_displays();
+  display_state = _IDLE;
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 
 
