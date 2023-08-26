@@ -205,6 +205,7 @@ ICACHE_RAM_ATTR void handle_button_state_change(){
 }
 
 void setup() {
+  ss = 255; // defuault value to ensure we get the first read value.
   Serial.begin(115200);
   Serial.println();
   Serial.print("Wifi connecting to ");
@@ -275,67 +276,7 @@ void setup() {
 }
 
 void loop() {
-  timeClient.update();
-  time(&now);
-  localtime_r(&now, &tm);
-  
-  epochTime = timeClient.getEpochTime();
-  ptm = gmtime ((time_t *)&epochTime);
-  day = daysOfTheWeek[timeClient.getDay()];
-  month = monthsOfTheYear[ptm->tm_mon];
-  dd = tm.tm_mday;
-  YYYY = tm.tm_year + 1900;
-  hh = tm.tm_hour;
-  mm = timeClient.getMinutes();
-  ss = timeClient.getSeconds();
-  
-  left_msg = day + "\n" + String(month) + " " + String(dd) + "\n" + String(YYYY);
-  if (hh < 10){
-    right_msg += "0" + String(hh) + ":";
-    time_abbrv = "AM";
-  } else {
-    if (hh > 12 && hh-12 <= 9){
-      right_msg += "0" + String(hh-12) + ":";
-      time_abbrv = "PM";
-    } else if (hh > 12){
-      right_msg += String(hh-12) + ":";
-      time_abbrv = "PM";
-    } else {
-      right_msg += String(hh) + ":";
-      time_abbrv = "AM";
-    }
-  }
-  if (mm < 10) {
-    right_msg += "0" + String(mm) + ":";
-  } else {
-    right_msg += String(mm) + ":";
-  }
-  if (ss < 10) {
-    right_msg += "0" + String(ss);
-  } else {
-    right_msg += String(ss);
-  }
-  right_msg += time_abbrv;
-
-  Serial.print(day);
-  Serial.print(" ");
-  Serial.print(dd);
-  Serial.print(" ");
-  Serial.print(month);
-  Serial.print(", ");
-  Serial.print(YYYY);
-  Serial.print("[");
-  Serial.print(tm.tm_year+1900);
-  Serial.print("]");
-  Serial.print(" ");
-  Serial.print(hh);
-  Serial.print(":");
-  Serial.print(mm);
-  Serial.print(":");
-  Serial.println(ss);
-  display_state = _DATE;
-  display2ScreenMsg(left_msg, right_msg);
-  display_state = _IDLE;
+  updateTime();
   
   if (Serial.available() > 0){
     char in_char = Serial.read();
@@ -372,7 +313,7 @@ void loop() {
     set_default_displays();
     eyeAnimationDemo();
   }
-  
+  /*
   if (last_display_state != display_state){
     switch (display_state){
       case _IDLE:
@@ -380,7 +321,7 @@ void loop() {
           set_default_displays();
           //eyeAnimationDemo();
           last_display_state = _IDLE;
-        }*/
+        }
         break;
       case _DATE:
         //Serial.println(get_request("http://192.168.1.153:5003/datetime"));
@@ -393,10 +334,81 @@ void loop() {
         display2ScreenMsg("Adjust\nIntensity", "Click to\nChange the\nIntensity");
         break;
     }
-  }
+  }*/
   //demoCscale();
   delay(1);
   server.handleClient();
+}
+
+/*
+ * User NTP Server to get the latest local date & time
+ * then update the displays.
+ */
+void updateTime(){
+  timeClient.update();
+  time(&now);
+  localtime_r(&now, &tm);
+
+  /*
+   * We only want to update the display on the second changes
+   */
+  if (ss != tm.tm_sec){
+    epochTime = timeClient.getEpochTime();
+    ptm = gmtime ((time_t *)&epochTime);
+    //day = daysOfTheWeek[timeClient.getDay()];
+    day = daysOfTheWeek[tm.tm_wday];
+    month = monthsOfTheYear[ptm->tm_mon];
+    dd = tm.tm_mday;
+    YYYY = tm.tm_year + 1900;
+    hh = tm.tm_hour;
+    mm = timeClient.getMinutes();
+    
+    ss = tm.tm_sec;
+    right_msg = ""; // clear the right msg to make sure we're not constantly extending the msg
+    left_msg = day + "\n" + String(month) + " " + String(dd) + "\n" + String(YYYY);
+    if (hh < 10){
+      right_msg += "0" + String(hh) + ":";
+      time_abbrv = "AM";
+    } else {
+      if (hh > 12 && hh-12 <= 9){
+        right_msg += "0" + String(hh-12) + ":";
+        time_abbrv = "PM";
+      } else if (hh > 12){
+        right_msg += String(hh-12) + ":";
+        time_abbrv = "PM";
+      } else {
+        right_msg += String(hh) + ":";
+        time_abbrv = "AM";
+      }
+    }
+    if (mm < 10) {
+      right_msg += "0" + String(mm) + ":";
+    } else {
+      right_msg += String(mm) + ":";
+    }
+    if (ss < 10) {
+      right_msg += "0" + String(ss);
+    } else {
+      right_msg += String(ss);
+    }
+    right_msg += time_abbrv;
+  
+    Serial.print(day);
+    Serial.print(" ");
+    Serial.print(dd);
+    Serial.print(" ");
+    Serial.print(month);
+    Serial.print(", ");
+    Serial.print(YYYY);
+    Serial.print(" ");
+    Serial.print(hh);
+    Serial.print(":");
+    Serial.print(mm);
+    Serial.print(":");
+    Serial.println(ss);
+    display_state = _DATE;
+    display2ScreenMsg(left_msg, right_msg);
+  }
 }
 
 void play_alarm(){
@@ -414,7 +426,7 @@ void play_alarm(){
   display_1.setTextSize(2); // Draw 2X-scale text
   display_1.setTextColor(SSD1306_WHITE);
   display_1.setCursor(0, 0);
-  display_1.print(alarm_name);
+  display_1.print(alarm_msg);
   display_1.println(F("!"));
   display_1.display();
   
@@ -443,8 +455,6 @@ void play_alarm(){
       break;
     }
   }
-  set_default_displays();
-  display_state = _IDLE;
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 
 
@@ -498,6 +508,8 @@ void set_default_displays(){
 }
 
 void display2ScreenMsg(String left_msg, String right_msg) {
+  display_1.clearDisplay();
+  display_2.clearDisplay();
   switch(display_state){
 
     case _DATE:
@@ -514,7 +526,7 @@ void display2ScreenMsg(String left_msg, String right_msg) {
        right_cursor_pos = 16;
        break; 
   }
-  if (display_state != last_display_state){
+  if (display_state != last_display_state || display_state == _DATE){
     display_1.clearDisplay();  // right screen
     display_1.setTextSize(right_font_sz);
     display_2.clearDisplay();  // left screen
