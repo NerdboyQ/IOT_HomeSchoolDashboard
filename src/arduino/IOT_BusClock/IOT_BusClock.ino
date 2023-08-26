@@ -633,10 +633,17 @@ void eyeAnimationDemo(){
 }
 
 void setPixelRGB(uint16_t brightness, uint16_t r, uint16_t g, uint16_t b){
+  for(int i=NUMPIXELS-1; i>=0; i--) {
+    pixels.setPixelColor(i, pixels.Color(0 , 0, 0));
+    delay(100);
+    pixels.show();
+  }
   for(int i=0; i<NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color((brightness*r/255) , (brightness*g/255), (brightness*b/255)));
+    delay(100);
+    pixels.show();
   }
-  pixels.show();
+  
   // String resp = "RGB Color: red=" + String(r) +", green=" + String(g) + ", blue=" +String(b);
   // server.send(200,"text/plain",resp);
 }
