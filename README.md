@@ -6,6 +6,29 @@
 * The Pi (Raspberry Pi) is beinng used as a home server to host a webapp to track a child's performance and to set different alarms for the ESP8266
 * Both devices will have to be connected to your home network (wifi) to interact and function as intended
 
+![IOT Bus](/IOT_bus_external.JPG)
+![IOT Bus](/IOT_bus_internal.JPG)
+### Parts 
+* Laptop/Desktop
+* Raspberry Pi (Preferably a model with wifi capabilities)
+   * Power supply 
+   * Monitor (or a display with an hdmi port)
+   * HDMI cable
+   * Keyboard _(a mouse isn't required but it may make things easier)_
+   * Mico SD Card
+* ESP8266
+   * Micro USB cable for programming
+   * Small Speaker
+   * Wires
+   * 2 x OLED Display Module 128 x 64 OLED Display I2C 0.96inch
+   > NOTE: Each display will need a unique address, which is designated by the soldered resistors on the board. The [LINK](https://youtu.be/j6B47reye80?t=101) provides steps to change the address using a soldering iron.
+   * Soldering Iron & solder
+   * 1m NeoPixel LED strip
+
+   > NOTE: I 3d printed the alarm clock to look like a bus, but the componenets can be placed in any design you'd prefer.
+
+### Wiring Diagram   
+![Wiring Diagram](/IOT_but_wiring_diagram.JPG)
 ### Hiccups    
 * To program the ESP8266 using the [Arduino IDE](https://docs.arduino.cc/software/ide-v2) you will need to install the appropriate driver [HERE](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) to succssfully detect the Micrcontrollr when it's connected to the computer/laptop via USB.
 * For the Arduino IDE to find the ESP8366 in the list of boards, please do the following steps below in the IDE window:
@@ -21,24 +44,6 @@
 
   5. Go to Tools > Board and choose your ESP8266 board. Then, re-open your Arduino IDE.
 
-### Parts 
-* Laptop/Desktop
-* Raspberry Pi (Preferably a model with wifi capabilities)
-   * Power supply 
-   * Monitor (or a display with an hdmi port)
-   * HDMI cable
-   * Keyboard _(a mouse isn't required but it may make things easier)_
-   * Mico SD Card
-* ESP8266
-   * Micro USB cable for programming
-   * Small Speaker
-   * Wires
-   * 2 x OLED Display Module 128 x 64 OLED Display I2C 0.96inch
-   * Soldering Iron & solder
-   * 1m NeoPixel LED strip
-
-   > NOTE: I 3d printed the alarm clock to look like a bus, but the componenets can be placed in any design you'd prefer.
-   
 ### HTTP Requests   
 * Commands can be sent to the ESP8266 via "HTTP requests", which it how in internet essentially works.
 * When you go to a website, e.g. Google or Youtube, you the address most likely starts with _"http://"_
