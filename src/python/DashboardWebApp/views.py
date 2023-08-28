@@ -1,9 +1,11 @@
-from flask import render_template, jsonify
+from flask import render_template, jsonify, request
 from DashboardWebApp import app
 from DashboardWebApp.models import *
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import json
+
+IOT_BUS_URL = "http://192.168.1.68/"
 
 def get_behavior_records():
 	"""
@@ -26,7 +28,7 @@ def get_behavior_record_values(date: str):
 			db.session.add(rec)
 			db.session.commit()
 
-		print(f"-i- {rec}")
+		#print(f"-i- {rec}")
 		return rec
 
 	except Exception as e:
@@ -41,7 +43,7 @@ def get_led_status():
 	Sends a request to the arduino to get the current state of the LED's.
 	"""
 
-	url = f"http://192.168.1.188/current_led_state"
+	url = f"{IOT_BUS_URL}current_led_state"
 	return json.loads(requests.get(url).text)
 
 
@@ -52,16 +54,23 @@ def adjust_led(state_irgb):
 	"""
 	state = state_irgb.split()[0]
 	irgb = state_irgb.split()[1].upper()
-	url = f"http://192.168.1.188/led?state={state};irgb={irgb};"
+	url = f"{IOT_BUS_URL}led?state={state};irgb={irgb};"
 	return json.loads(requests.get(url).text)
 
 
-@app.route('/trigger_alarm/<alarm_name>', methods=['GET', 'POST'])
-def trigger_school_alarm(alarm_name):
+@app.route('/trigger_alarm', methods=['GET', 'POST'])
+def trigger_school_alarm():
 	"""
 	Sends a get request to the arduino to trigger the appropriate alarm.
 	"""
-	return jsonify(requests.get(f"http://192.168.1.188/alarm?name={alarm_name}").text)
+	req = request.args.to_dict()
+	msg = req["msg"]
+	irgb = req["irgb"]
+	name = req["melody"]
+	url = f"{IOT_BUS_URL}alarm?name={name}&msg={msg}&irgb={irgb}"
+	print(f"req: {req}")
+	print(f"url {url}")
+	return jsonify(requests.get(url).text)
 
 
 @app.route('/datetime', methods=['GET'])
@@ -77,7 +86,7 @@ def get_alarms_from_db():
 	"""
 	Queries the database for all alarms currently in the database
 	"""
-	db_records = Alarm.query.all()
+	db_records = Alarms.query.all()
 	records = []
 	for rec in db_records:
 		temp_dict = rec.__dict__
@@ -88,7 +97,7 @@ def get_alarms_from_db():
 
 
 @app.route("/add_new_alarm")
-def add_new_alarm(alarm: Alarm):
+def add_new_alarm(alarm: Alarms):
 	"""
 	Stores an alarm model instance in the database.
 	
@@ -149,7 +158,7 @@ def render_homepage():
 	Starts homepage for the webapp.
 	"""
 
-	return render_template('homepage.html', alarms=Alarm.query.all())
+	return render_template('homepage.html', alarms=Alarms.query.all())
 	
 
 
