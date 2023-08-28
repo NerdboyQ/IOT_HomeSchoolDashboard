@@ -44,12 +44,13 @@ class BehaviorRecord(db.Model):
 		return _payload
 
 
-class Alarm(db.Model):
+class Alarms(db.Model):
 	"""
 	Alarm model for storing alarm settings int eh webapp database.
 	"""
-	name = db.Column(db.String(120), default="Alarm", nullable=False, primary_key=True)
+	_id = db.Column(db.Integer, primary_key=True)
 	time = db.Column(db.String(120), default="8:30am")
+	msg = db.Column(db.String(120), default="TEST")
 	start_date = db.Column(db.String(120), default=get_date_string)
 	alarm_melody = db.Column(db.String(120), default="Drankin Patna")
 	repeat = db.Column(db.String(120), default="YES")
