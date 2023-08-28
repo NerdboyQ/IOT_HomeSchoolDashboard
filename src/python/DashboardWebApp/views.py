@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 import requests
 import json
 
-
 def get_behavior_records():
 	"""
 	Returns list of behavior records from db.
@@ -152,7 +151,5 @@ def render_homepage():
 
 	return render_template('homepage.html', alarms=Alarm.query.all())
 	
-
-db.create_all()
 
 

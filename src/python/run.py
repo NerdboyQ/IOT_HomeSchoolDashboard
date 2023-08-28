@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from DashboardWebApp import app
 
 # adding host '0.0.0.0' & a port, this can serve as a local network server when running.

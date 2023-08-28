@@ -1,6 +1,5 @@
-from DashboardWebApp import db
+from DashboardWebApp import db, app
 from datetime import datetime as dt
-
 
 def get_date_string():
 	"""
@@ -73,3 +72,8 @@ class Alarm(db.Model):
 		"""
 
 		return self.__dict__
+
+
+# This context condition must be used as of flask_sqlachemy v3.0
+with app.app_context():
+    db.create_all()
