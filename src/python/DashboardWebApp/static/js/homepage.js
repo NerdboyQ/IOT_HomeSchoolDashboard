@@ -38,7 +38,7 @@ var lighting_options_tbl = document.getElementById("lighting-options-tbl");
 var light_intensity_lbl = document.getElementById("light-intensity-lbl");
 var led_state = 0;
 var irgb = "c8ffffff";
-var alarms = [];
+var alarms = ["DrankinPatna", "HarryPotter"];
 var last_alarm_datetime;
 var last_alarm;
 get_led_status();
@@ -58,8 +58,10 @@ setInterval(function() {
 
 function test_alarm(){
     console.log("testing arduino alarm...");
-    var path = "../trigger_alarm/" +alarms[0]["name"];
-    console.log(alarms[0]);
+    alarm = alarms[1] 
+    var path = "../trigger_alarm?melody=" +alarm["alarm_melody"] + "&msg=" +alarm["msg"] + "&irgb=" + alarm["color"];
+    console.log(alarm);
+    console.log(path);
     $.getJSON(path,
         function(data) {
             console.log(data);
@@ -91,7 +93,7 @@ function is_alarm_time(){
         if (hr == parseInt(current_date.hr) && min == parseInt(current_date.minute) && ampm == current_date.am_pm){
             // avoid resending the alarm trigger once already triggered.
             if (last_alarm != alarm && last_alarm_datetime != current_date){
-                var path = "../trigger_alarm/" +alarm["name"].replace(" ", "\n");
+                var path = "../trigger_alarm?melody=" +alarm["alarm_melody"] + "&msg=" +alarm["msg"] + "&irgb=" + alarm["color"];
                 console.log(alarm["name"]);
                 last_alarm = alarm;
                 last_alarm_datetime = current_date;
@@ -163,7 +165,7 @@ function handle_light_state(state){
 }
 
 function set_led_status(){
-
+    test_alarm();
     var path = "../led_adjust/" +led_state +" "+ irgb;
     console.log("full path: " + path);
     $.getJSON(path,
